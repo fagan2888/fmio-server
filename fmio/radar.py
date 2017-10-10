@@ -13,6 +13,7 @@ from os import path
 from rasterio.plot import show
 from urllib.request import urlretrieve
 from j24.server import GracefulKiller
+from fmio import CONFIG_DIR
 
 def generate_url(keyfilepath):
     with open(keyfilepath, 'r') as keyfile:
@@ -42,8 +43,8 @@ def plot_radar_map(radar_data, basemap):
 
 def update_radar_data(output_filepath, debug=False):
     data_path = 'data'
-    config_path = '.'
-    keyfilepath = path.join(config_path, 'api.key')
+    config_dir = CONFIG_DIR
+    keyfilepath = path.join(config_dir, 'api.key')
     radurl = generate_url(keyfilepath)
     with tempfile.TemporaryDirectory() as tmp_path:
         radarfilepath = path.join(tmp_path, 'Radar-suomi_dbz_eureffin.tif')
@@ -58,7 +59,7 @@ def update_radar_data(output_filepath, debug=False):
     if not debug:
         plt.close(fig)
 
-if __name__ == '__main__':
+def main():
     debug = True
     if debug:
         plt.ion()
@@ -72,3 +73,6 @@ if __name__ == '__main__':
         update_radar_data('test.png', debug=debug)
         if killer.kill_now:
             break
+
+if __name__ == '__main__':
+    main()

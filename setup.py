@@ -14,10 +14,10 @@ from os import path
 
 
 here = path.abspath(path.dirname(__file__))
-name = 'fmio-server'
+name = 'fmio'
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 #config.install_config()
@@ -34,7 +34,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/sataako/' + name,
+    url='https://github.com/sataako/fmio-server',
 
     # Author details
     author='Jussi Tiira, Ilkka Kuisma and Risto Mikkola',
@@ -84,12 +84,12 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'rasterio',
-        'geopandas',
+        'numpy',
         'matplotlib',
-        'numpy'
+        'rasterio',
+        'geopandas'
     ],
-    dependency_links=['git+https://github.com/juhi24/j24py.git'],
+    dependency_links=['https://github.com/juhi24/j24py/tarball/master#egg=j24-0.1.2'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -119,7 +119,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            '{name} = {name}.__main__:main'.format(name=name)
+            '{name} = {name}.radar.__main__:main'.format(name=name)
         ]
     },
 )
