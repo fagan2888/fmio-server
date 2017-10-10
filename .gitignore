@@ -104,3 +104,7 @@ ENV/
 api.key
 tmp/
 test.*
+
+#pycharm
+.idea
+
