@@ -119,7 +119,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            '{name} = {name}.radar.__main__:main'.format(name=name)
+            '{name} = {name}.__main__:main'.format(name=name)
         ]
     },
 )

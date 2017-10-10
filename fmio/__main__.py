@@ -13,7 +13,7 @@ from os import path
 from rasterio.plot import show
 from urllib.request import urlretrieve
 from j24.server import GracefulKiller
-from fmio import CONFIG_DIR
+from fmio import USER_DIR
 
 def generate_url(keyfilepath):
     with open(keyfilepath, 'r') as keyfile:
@@ -42,8 +42,8 @@ def plot_radar_map(radar_data, basemap):
     return ax
 
 def update_radar_data(output_filepath, debug=False):
-    data_path = 'data'
-    config_dir = CONFIG_DIR
+    data_path = path.join(path.dirname(__file__), 'data')
+    config_dir = USER_DIR
     keyfilepath = path.join(config_dir, 'api.key')
     radurl = generate_url(keyfilepath)
     with tempfile.TemporaryDirectory() as tmp_path:
