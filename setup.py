@@ -86,7 +86,7 @@ setup(
     install_requires=[
         'numpy',
         'matplotlib',
-        'rasterio=>1.0a9',
+        'rasterio>=1.0a9',
         'geopandas'
     ],
     dependency_links=['https://github.com/juhi24/j24py/tarball/master#egg=j24-0.1.2'],
