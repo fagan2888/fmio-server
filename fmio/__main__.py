@@ -21,11 +21,11 @@ def generate_url(keyfilepath):
     radurl_base = 'http://wms.fmi.fi/fmi-apikey/{}/geoserver/Radar/ows?service=WMS&request=GetMap&format=image/geotiff&bbox=-118331.366,6335621.167,875567.732,7907751.537&width=1700&height=2500&srs=EPSG:3067&layers=Radar:suomi_dbz_eureffin'
     return radurl_base.format(key)
 
-def read_basemap(shapefilepath):
+def read_basemap(shapefilepath, country_key='ADMIN'):
     world = gpd.read_file(shapefilepath)
-    return world[world.ADMIN=='Finland']
+    return world[world[country_key]=='Finland']
 
-def plot_radar_map(radar_data, basemap):
+def plot_radar_map(radar_data, basemap, cities=None):
     dat = radar_data.read(1)
     mask = dat==252
     d = dat.copy()
@@ -33,6 +33,9 @@ def plot_radar_map(radar_data, basemap):
     datm = np.ma.MaskedArray(data=d, mask=d==0)
     nummask = np.ma.MaskedArray(data=dat, mask=~mask)
     ax = basemap.to_crs(radar_data.read_crs().data).plot(zorder=0, color='gray')
+    if cities is not None:
+        cities.to_crs(radar_data.read_crs().data).plot(zorder=5, color='black',
+                                                       ax=ax, markersize=2)
     show(datm, transform=radar_data.transform, ax=ax, zorder=3)
     show(nummask, transform=radar_data.transform, ax=ax, zorder=4, alpha=.1,
          interpolation='bilinear')
@@ -49,10 +52,12 @@ def update_radar_data(output_filepath, debug=False):
     with tempfile.TemporaryDirectory() as tmp_path:
         radarfilepath = path.join(tmp_path, 'Radar-suomi_dbz_eureffin.tif')
         urlretrieve(radurl, filename=radarfilepath)
-        shapefile_path = path.join(data_path, 'ne_10m_admin_0_countries.shp')
-        basemap = read_basemap(shapefile_path)
+        country_filepath = path.join(data_path, 'ne_10m_admin_0_countries.shp')
+        cities_filepath = path.join(data_path, 'ne_10m_populated_places.shp')
+        basemap = read_basemap(country_filepath, country_key='ADMIN')
+        cities = read_basemap(cities_filepath, country_key='ADM0NAME')
         with rasterio.open(radarfilepath) as radar_data:
-            ax = plot_radar_map(radar_data, basemap)
+            ax = plot_radar_map(radar_data, basemap, cities=cities)
         fig = ax.get_figure()
         fig.savefig(output_filepath)
     print('Updated {}.'.format(output_filepath))
