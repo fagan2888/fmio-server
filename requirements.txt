@@ -1,3 +1,4 @@
+# fmio
 numpy
 matplotlib
 rasterio>=1.0a9
@@ -6,3 +7,5 @@ Flask
 gunicorn
 https://github.com/juhi24/j24py/tarball/master
 backports.tempfile
+
+-r Optflow/requirements.txt
