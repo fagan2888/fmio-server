@@ -90,6 +90,7 @@ setup(
         'geopandas',
         'Flask',
         'gunicorn',
+        'j24py',
     ],
     dependency_links=['git+https://github.com/juhi24/j24py.git#egg=j24-0.1.2'],
 
