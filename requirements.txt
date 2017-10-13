@@ -1,0 +1,7 @@
+numpy
+matplotlib
+rasterio>=1.0a9
+geopandas
+Flask
+gunicorn
+https://github.com/juhi24/j24py/tarball/master
