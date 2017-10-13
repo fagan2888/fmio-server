@@ -7,7 +7,7 @@ class DataMiner:
     def __init__(self, key, stored_count=6):
         self.key = key
         self.stored_count = stored_count
-        self.tempdir = "data/tmp"
+        self.tempdir = "fmio/data/tmp"
         self.counter = 0
         self.lock = threading.RLock()
         with self.lock:

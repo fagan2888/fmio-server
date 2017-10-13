@@ -44,3 +44,7 @@ def file():
 def file2():
     with miner.lock:
         return send_from_directory(miner.tempdir, miner.filenames()[0])
+
+@app.route("/png")
+def png():
+    return send_from_directory(".", "test.png")
