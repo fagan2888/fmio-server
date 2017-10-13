@@ -2,9 +2,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 __metaclass__ = type
 
+from j24 import running_py3
+
 import numpy as np
-import matplotlib.pyplot as plt
-from urllib.parse import urlencode
+if running_py3():
+    from urllib.parse import urlencode
+else:
+    from urllib import urlencode
 from rasterio.plot import show
 
 def read_key(keyfilepath):
