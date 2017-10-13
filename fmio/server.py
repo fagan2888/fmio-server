@@ -19,7 +19,8 @@ def update_forecast():
     timer.start()
 
 
-update_forecast()
+# Disabled for now not to eat out resources
+# update_forecast()
 
 app = Flask(__name__)
 
