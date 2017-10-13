@@ -4,16 +4,22 @@ __metaclass__ = type
 
 import numpy as np
 import matplotlib.pyplot as plt
-from urllib.parse import urlencode
+from urllib import urlencode
 from rasterio.plot import show
+from os import path, environ
+from fmio import USER_DIR
 
-def read_key(keyfilepath):
+keyfilepath = path.join(USER_DIR, 'api.key')
+
+def read_key(keyfilepath=keyfilepath):
+    if "FMI_API_KEY" in environ:
+        return environ['FMI_API_KEY']
     with open(keyfilepath, 'r') as keyfile:
         return keyfile.readline().splitlines()[0]
 
 
-def gen_url(*args, width=3400, height=5380, **kws):
-    key = read_key(*args, **kws)
+def gen_url(width=3400, height=5380):
+    key = read_key()
     url_base = 'http://wms.fmi.fi/fmi-apikey/{}/geoserver/Radar/ows?'.format(key)
     params = dict(service='WMS',
                   version='1.3.0',

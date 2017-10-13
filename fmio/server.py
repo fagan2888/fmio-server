@@ -7,7 +7,7 @@ import threading
 
 key = environ['FMI_API_KEY']
 tempdir = path.join(DATA_DIR, "tmp")
-miner = DataMiner(key, tempdir)
+miner = DataMiner(key, tempdir, stored_count=3)
 
 
 def update_forecast():

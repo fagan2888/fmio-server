@@ -8,15 +8,14 @@ import rasterio
 import tempfile
 import matplotlib.pyplot as plt
 from os import path
-from urllib.request import urlretrieve
+from urllib import urlretrieve
 from j24.server import GracefulKiller
-from fmio import USER_DIR, basemap, fmi
+from fmio import basemap, fmi
+from backports import tempfile
 
 
 def update_radar_data(output_filepath, debug=False):
-    config_dir = USER_DIR
-    keyfilepath = path.join(config_dir, 'api.key')
-    radurl = fmi.gen_url(keyfilepath)
+    radurl = fmi.gen_url()
     with tempfile.TemporaryDirectory() as tmp_path:
         radarfilepath = path.join(tmp_path, 'Radar-suomi_dbz_eureffin.tif')
         urlretrieve(radurl, filename=radarfilepath)

@@ -28,7 +28,7 @@ class DataMiner:
     def generate_filename(self):
         with self.lock:
             self.counter += 1
-            return "{}".format(self.counter)
+            return "{}.tif".format(self.counter)
 
     def erase_extra_files(self):
         with self.lock:
@@ -44,10 +44,8 @@ class DataMiner:
             self.erase_extra_files()
 
     def filenames(self):
+        """Returns names of the stored files sorted as newest to oldest"""
         with self.lock:
-            return listdir(self.tempdir)
-
-    def write_test_png(self):
-        with self.lock:
-            from shutil import copy2
-            copy2("test.png", self.tempdir)
+            filenames = listdir(self.tempdir)
+            filenames.sort(reverse=True)
+            return filenames
