@@ -1,12 +1,10 @@
 from flask import Flask, send_from_directory, send_file, url_for
 from dataminer import DataMiner
-from os import path
+from os import path, environ
 import cStringIO
 import threading
 
-with open("api.key", 'r') as f:
-    key = f.readline().splitlines()[0]
-miner = DataMiner(key)
+miner = DataMiner(environ['FMI_API_KEY'])
 
 
 def update_forecast():
