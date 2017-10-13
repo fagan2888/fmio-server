@@ -16,13 +16,13 @@ def read_key(keyfilepath):
         return keyfile.readline().splitlines()[0]
 
 
-def gen_url(*args, width=3400, height=5380, **kws):
+def gen_url(*args, width=3400, height=5380, var='rr', **kws):
     key = read_key(*args, **kws)
     url_base = 'http://wms.fmi.fi/fmi-apikey/{}/geoserver/Radar/ows?'.format(key)
     params = dict(service='WMS',
                   version='1.3.0',
                   request='GetMap',
-                  layers='Radar:suomi_dbz_eureffin',
+                  layers='Radar:suomi_{}_eureffin'.format(var),
                   styles='raster',
                   bbox='-118331.366,6335621.167,875567.732,7907751.537',
                   srs='EPSG:3067',
@@ -41,22 +41,28 @@ def gen_url(*args, width=3400, height=5380, **kws):
     return url_base + urlencode(params)
 
 
-def plot_radar_map(radar_data, border, cities=None, ax=None):
+def plot_radar_map(radar_data, border=None, cities=None, ax=None, tight=True):
     dat = radar_data.read(1)
-    mask = dat==255
-    d = dat.copy()
+    mask = dat==65535
+    d = dat.copy()*0.01
     d[mask] = 0
     datm = np.ma.MaskedArray(data=d, mask=d==0)
     nummask = np.ma.MaskedArray(data=dat, mask=~mask)
-    ax = border.to_crs(radar_data.read_crs().data).plot(zorder=0, color='gray')
+    ax = show(datm, transform=radar_data.transform, ax=ax, zorder=3)
+    show(nummask, transform=radar_data.transform, ax=ax, zorder=4, alpha=.1,
+         interpolation='bilinear')
+    if border is not None:
+        border.to_crs(radar_data.read_crs().data).plot(zorder=0, color='gray',
+                                                       ax=ax)
     if cities is not None:
         cities.to_crs(radar_data.read_crs().data).plot(zorder=5, color='black',
                                                        ax=ax, markersize=2)
-    show(datm, transform=radar_data.transform, ax=ax, zorder=3)
-    show(nummask, transform=radar_data.transform, ax=ax, zorder=4, alpha=.1,
-         interpolation='bilinear')
     ax.axis('off')
-    ax.set_xlim(left=-5e4)
-    ax.set_ylim(top=7.8e6, bottom=6.42e6)
+    if tight:
+        ax.set_xlim(left=1e4, right=7.8e5)
+        ax.set_ylim(top=7.8e6, bottom=6.45e6)
+    else:
+        ax.set_xlim(left=-5e4)
+        ax.set_ylim(top=7.8e6, bottom=6.42e6)
     return ax
 
