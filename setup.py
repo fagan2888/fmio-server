@@ -90,7 +90,6 @@ setup(
         'geopandas',
         'Flask',
         'gunicorn',
-        'j24',
     ],
     dependency_links=['http://github.com/juhi24/j24py/tarball/master#egg=j24-0.1.2'],
 
