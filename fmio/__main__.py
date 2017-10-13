@@ -3,12 +3,17 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 __metaclass__ = type
 
+from j24 import running_py3
+
 import time
 import rasterio
 import tempfile
 import matplotlib.pyplot as plt
 from os import path
-from urllib import urlretrieve
+if running_py3():
+    from urllib.request import urlretrieve
+else:
+    from urllib import urlretrieve
 from j24.server import GracefulKiller
 from fmio import basemap, fmi
 from backports import tempfile
