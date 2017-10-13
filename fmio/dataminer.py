@@ -4,10 +4,10 @@ from urllib import urlretrieve
 
 
 class DataMiner:
-    def __init__(self, key, stored_count=6):
+    def __init__(self, key, tempdir, stored_count=6):
         self.key = key
         self.stored_count = stored_count
-        self.tempdir = "fmio/data/tmp"
+        self.tempdir = tempdir
         self.counter = 0
         self.lock = threading.RLock()
         with self.lock:

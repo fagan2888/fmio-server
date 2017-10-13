@@ -1,10 +1,13 @@
 from flask import Flask, send_from_directory, send_file, url_for
 from dataminer import DataMiner
 from os import path, environ
+from fmio import DATA_DIR
 import cStringIO
 import threading
 
-miner = DataMiner(environ['FMI_API_KEY'])
+key = environ['FMI_API_KEY']
+tempdir = path.join(DATA_DIR, "tmp")
+miner = DataMiner(key, tempdir)
 
 
 def update_forecast():
@@ -45,4 +48,4 @@ def file2():
 
 @app.route("/png")
 def png():
-    return send_from_directory(".", "test.png")
+    return send_from_directory(DATA_DIR, "test.png")
