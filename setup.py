@@ -87,9 +87,12 @@ setup(
         'numpy',
         'matplotlib',
         'rasterio>=1.0a9',
-        'geopandas'
+        'geopandas',
+        'Flask',
+        'gunicorn',
+        'j24',
     ],
-    dependency_links=['https://github.com/juhi24/j24py/tarball/master#egg=j24-0.1.2'],
+    dependency_links=['https://github.com/juhi24/j24py/tarball/master#egg=j24py-0.1.2'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
