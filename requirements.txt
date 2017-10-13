@@ -8,4 +8,4 @@ gunicorn
 https://github.com/juhi24/j24py/tarball/master
 backports.tempfile
 
--r Optflow/requirements.txt
+-r pyoptflow/requirements.txt
