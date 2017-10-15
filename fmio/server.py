@@ -10,11 +10,15 @@ tempdir = path.join(DATA_DIR, "tmp")
 miner = DataMiner(key, tempdir, stored_count=3)
 
 
-def update_forecast():
+def update_forecast(debug=False):
+    if debug:
+        interval = 5
+    else:
+        interval = 5*60
     miner.fetch_radar_data()
     # build forecast after fetching the data
     # miner.write_test_png()  # dumping some test file instead
-    timer = threading.Timer(5, update_forecast)
+    timer = threading.Timer(interval, update_forecast)
     timer.daemon = True
     timer.start()
 
@@ -37,7 +41,7 @@ def rains(location):
     return "Not at {}".format(location)
 
 @app.route("/file")
-def file():
+def file1():
     with miner.lock:
         with open(path.join(miner.tempdir, miner.filenames()[0])) as f:
             return send_file(cStringIO.StringIO(f.read()), mimetype="image/png")
