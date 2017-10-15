@@ -1,6 +1,7 @@
 import threading
 from os import path, remove, listdir, makedirs
 from urllib import urlretrieve
+from fmio import fmi
 
 
 class DataMiner:
@@ -22,8 +23,7 @@ class DataMiner:
 
     @property
     def radar_url(self):
-        url_base = 'http://wms.fmi.fi/fmi-apikey/{}/geoserver/Radar/ows?service=WMS&request=GetMap&format=image/geotiff&bbox=-118331.366,6335621.167,875567.732,7907751.537&width=1700&height=2500&srs=EPSG:3067&layers=Radar:suomi_dbz_eureffin'
-        return url_base.format(self.key)
+        return fmi.gen_url(key=self.key)
 
     def generate_filename(self):
         with self.lock:
