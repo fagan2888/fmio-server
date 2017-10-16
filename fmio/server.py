@@ -38,7 +38,7 @@ def site_map():
         links.append("{}".format((url, rule.endpoint)))
     return "{}".format("<br/>".join(links))
 
-@app.route("/rains/<long>/<lat>")
+@app.route("/rains/<lon>/<lat>")
 def rains(lon, lat):
     p1 = pyproj.Proj(init='epsg:4326')
     p2 = pyproj.Proj(init='epsg:3067')
