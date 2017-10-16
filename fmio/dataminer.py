@@ -41,3 +41,6 @@ class DataMiner:
             filenames.sort(reverse=True)
             filenames = map(str, filenames)
             return filenames
+
+    def filepaths(self):
+        return map(lambda x: path.join(self.tempdir, x), self.filenames())

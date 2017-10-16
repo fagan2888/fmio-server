@@ -26,5 +26,5 @@ def motion(rr0ubyte, rr1ubyte, lam=25.0, num_iter=250, num_levels=6):
                                     num_levels=num_levels)[0]
 
 def extrapolate(rr, v, t, n_steps=15, n_iter=3, inverse=True):
-    return semilagrangian(rr, V, t, n_steps=n_steps, n_iter=n_iter,
+    return semilagrangian(rr, v, t, n_steps=n_steps, n_iter=n_iter,
                           inverse=inverse)
