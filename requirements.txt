@@ -7,5 +7,6 @@ Flask
 gunicorn
 https://github.com/juhi24/j24py/tarball/master
 backports.tempfile
+pyproj
 
 -r pyoptflow/requirements.txt

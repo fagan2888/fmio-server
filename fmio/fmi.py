@@ -12,6 +12,8 @@ else:
 from rasterio.plot import show
 from os import path, environ
 from fmio import USER_DIR
+import datetime
+import time
 
 keyfilepath = path.join(USER_DIR, 'api.key')
 
@@ -22,9 +24,31 @@ def read_key(keyfilepath=keyfilepath):
         return keyfile.readline().splitlines()[0]
 
 
-def gen_url(key=None, width=3400, height=5380, var='rr'):
-    if key is None:
-        key = read_key()
+def to_datetime(ttime):
+    dtime = datetime.datetime.fromtimestamp(ttime)
+    return dtime
+
+
+def to_time(dtime):
+    ttime = (dtime - datetime.datetime(1970, 1, 1)).total_seconds()
+    return ttime
+
+
+def normalize_datetime(dtime):
+    dtime = dtime.replace(minute=(dtime.minute // 5) * 5, second=0, microsecond=0)
+    return dtime
+
+
+def gen_timestamp(ttime=None):
+    """converts given seconds since epoch to a valid timestamp for url"""
+    ttime = ttime or time.time()
+    dtime = to_datetime(ttime)
+    dtime = normalize_datetime(dtime)
+    return dtime.strftime("%Y-%m-%dT%H:%M:00Z")
+
+
+def gen_url(width=3400, height=5380, var='rr', timestamp=None):
+    key = read_key()
     url_base = 'http://wms.fmi.fi/fmi-apikey/{}/geoserver/Radar/ows?'
     params = dict(service='WMS',
                   version='1.3.0',
@@ -36,6 +60,8 @@ def gen_url(key=None, width=3400, height=5380, var='rr'):
                   format='image/geotiff',
                   width=width,
                   height=height)
+    if timestamp is not None:
+        params["time"] = timestamp
     # old API params
     params_old = dict(service='WMS',
                       request='GetMap',

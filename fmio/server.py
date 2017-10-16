@@ -1,13 +1,15 @@
 from flask import Flask, send_from_directory, send_file, url_for
 from dataminer import DataMiner
-from os import path, environ
+from os import path
 from fmio import DATA_DIR
 import cStringIO
 import threading
+import time
+import pyproj
+import json
 
-key = environ['FMI_API_KEY']
 tempdir = path.join(DATA_DIR, "tmp")
-miner = DataMiner(key, tempdir, stored_count=3)
+miner = DataMiner(tempdir, stored_count=3)
 
 
 def update_forecast(debug=False):
@@ -15,16 +17,15 @@ def update_forecast(debug=False):
         interval = 5
     else:
         interval = 5*60
-    miner.fetch_radar_data()
-    # build forecast after fetching the data
-    # miner.write_test_png()  # dumping some test file instead
     timer = threading.Timer(interval, update_forecast)
     timer.daemon = True
     timer.start()
+    miner.fetch_radar_data()
 
-
-# Disabled for now not to eat out resources
-# update_forecast()
+start_time = time.time()
+miner.fetch_radar_data(start_time - 5 * 60)
+miner.fetch_radar_data(start_time)
+update_forecast()
 
 app = Flask(__name__)
 
@@ -36,9 +37,20 @@ def site_map():
         links.append("{}".format((url, rule.endpoint)))
     return "{}".format("<br/>".join(links))
 
-@app.route("/rains/<location>/")
-def rains(location):
-    return "Not at {}".format(location)
+@app.route("/rains/<long>/<lat>")
+def rains(long, lat):
+    p1 = pyproj.Proj(init='epsg:4326')
+    p2 = pyproj.Proj(init='epsg:3067')
+    xy = pyproj.transform(p1, p2, long, lat)
+    # fetch pixel value from tif:
+    # ret = []
+    # with storage.lock:
+    #   for filename in storage.filenames():
+    #       with rasterio.open(path.join(storage.path, filename)) as data:
+    #           value = data.sample([xy])[0]
+    #           ret.append({"time": int(filename), value})
+    # return json.dumps(ret)
+    return "not implemented. Coords: {}".format(xy)
 
 @app.route("/file")
 def file1():
@@ -54,3 +66,5 @@ def file2():
 @app.route("/png")
 def png():
     return send_from_directory(DATA_DIR, "test.png")
+
+# app.run()
