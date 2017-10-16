@@ -39,7 +39,7 @@ def site_map():
     return "{}".format("<br/>".join(links))
 
 @app.route("/rains/<long>/<lat>")
-def rains(long, lat):
+def rains(lon, lat):
     p1 = pyproj.Proj(init='epsg:4326')
     p2 = pyproj.Proj(init='epsg:3067')
     xy = pyproj.transform(p1, p2, lon, lat)
