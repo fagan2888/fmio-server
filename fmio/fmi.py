@@ -77,7 +77,7 @@ def gen_url(width=3400, height=5380, var='rr', timestamp=None):
     return url_base.format(key) + urlencode(params)
 
 
-def plot_radar_map(radar_data, border=None, cities=None, ax=None, tight=True):
+def plot_radar_map(radar_data, border=None, cities=None, ax=None, crop='fi'):
     dat = radar_data.read(1)
     mask = dat==65535
     d = dat.copy()*0.01
@@ -94,7 +94,10 @@ def plot_radar_map(radar_data, border=None, cities=None, ax=None, tight=True):
         cities.to_crs(radar_data.read_crs().data).plot(zorder=5, color='black',
                                                        ax=ax, markersize=2)
     ax.axis('off')
-    if tight:
+    if crop=='fi':
+        ax.set_xlim(left=1e4, right=7.8e5)
+        ax.set_ylim(top=7.8e6, bottom=6.45e6)
+    elif crop=='metrop': # metropolitean area TODO
         ax.set_xlim(left=1e4, right=7.8e5)
         ax.set_ylim(top=7.8e6, bottom=6.45e6)
     else:
@@ -103,9 +106,7 @@ def plot_radar_map(radar_data, border=None, cities=None, ax=None, tight=True):
     return ax
 
 
-def plot_radar_file(radarfilepath):
-    border = basemap.border()
-    cities = basemap.cities()
+def plot_radar_file(radarfilepath, **kws):
     with rasterio.open(radarfilepath) as radar_data:
-        return plot_radar_map(radar_data, border, cities=cities)
+        return plot_radar_map(radar_data, **kws)
 

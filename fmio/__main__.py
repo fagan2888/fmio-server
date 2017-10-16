@@ -25,7 +25,9 @@ def update_radar_figure(output_filepath, debug=False):
     with tempfile.TemporaryDirectory() as tmp_path:
         radarfilepath = path.join(tmp_path, 'Radar-suomi_dbz_eureffin.tif')
         urlretrieve(radurl, filename=radarfilepath)
-        ax = fmi.plot_radar_file(radarfilepath)
+        border = basemap.border()
+        cities = basemap.cities()
+        ax = fmi.plot_radar_file(radarfilepath, border=border, cities=cities)
         fig = ax.get_figure()
         fig.savefig(output_filepath)
     print('Updated {}.'.format(output_filepath))
