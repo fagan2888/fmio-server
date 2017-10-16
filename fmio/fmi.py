@@ -4,6 +4,7 @@ __metaclass__ = type
 
 from j24 import running_py3
 
+import rasterio
 import numpy as np
 if running_py3():
     from urllib.parse import urlencode
@@ -11,11 +12,13 @@ else:
     from urllib import urlencode
 from rasterio.plot import show
 from os import path, environ
-from fmio import USER_DIR
+from fmio import basemap, USER_DIR
 import datetime
 import time
 
+
 keyfilepath = path.join(USER_DIR, 'api.key')
+
 
 def read_key(keyfilepath=keyfilepath):
     if "FMI_API_KEY" in environ:
@@ -98,4 +101,11 @@ def plot_radar_map(radar_data, border=None, cities=None, ax=None, tight=True):
         ax.set_xlim(left=-5e4)
         ax.set_ylim(top=7.8e6, bottom=6.42e6)
     return ax
+
+
+def plot_radar_file(radarfilepath):
+    border = basemap.border()
+    cities = basemap.cities()
+    with rasterio.open(radarfilepath) as radar_data:
+        return plot_radar_map(radar_data, border, cities=cities)
 

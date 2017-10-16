@@ -6,7 +6,6 @@ __metaclass__ = type
 from j24 import running_py3
 
 import time
-import rasterio
 import matplotlib.pyplot as plt
 from os import path
 if running_py3():
@@ -14,7 +13,7 @@ if running_py3():
 else:
     from urllib import urlretrieve
 from j24.server import GracefulKiller
-from fmio import basemap, fmi, FI_RR_FIG_FILEPATH
+from fmio import fmi, FI_RR_FIG_FILEPATH
 if running_py3():
     import tempfile
 else:
@@ -26,10 +25,7 @@ def update_radar_figure(output_filepath, debug=False):
     with tempfile.TemporaryDirectory() as tmp_path:
         radarfilepath = path.join(tmp_path, 'Radar-suomi_dbz_eureffin.tif')
         urlretrieve(radurl, filename=radarfilepath)
-        border = basemap.border()
-        cities = basemap.cities()
-        with rasterio.open(radarfilepath) as radar_data:
-            ax = fmi.plot_radar_map(radar_data, border, cities=cities)
+        ax = fmi.plot_radar_file(radarfilepath)
         fig = ax.get_figure()
         fig.savefig(output_filepath)
     print('Updated {}.'.format(output_filepath))

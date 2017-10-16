@@ -44,3 +44,9 @@ class DataMiner:
 
     def filepaths(self):
         return map(lambda x: path.join(self.tempdir, x), self.filenames())
+
+
+    def two_newest(self):
+        filepaths = self.filepaths()
+        return filepaths[0], filepaths[1]
+
