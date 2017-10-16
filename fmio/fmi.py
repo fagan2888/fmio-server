@@ -22,9 +22,10 @@ def read_key(keyfilepath=keyfilepath):
         return keyfile.readline().splitlines()[0]
 
 
-def gen_url(width=3400, height=5380, var='rr'):
-    key = read_key()
-    url_base = 'http://wms.fmi.fi/fmi-apikey/{}/geoserver/Radar/ows?'.format(key)
+def gen_url(key=None, width=3400, height=5380, var='rr'):
+    if key is None:
+        key = read_key()
+    url_base = 'http://wms.fmi.fi/fmi-apikey/{}/geoserver/Radar/ows?'
     params = dict(service='WMS',
                   version='1.3.0',
                   request='GetMap',
@@ -44,7 +45,7 @@ def gen_url(width=3400, height=5380, var='rr'):
                       height=2500,
                       srs='EPSG:3067',
                       layers='Radar:suomi_dbz_eureffin')
-    return url_base + urlencode(params)
+    return url_base.format(key) + urlencode(params)
 
 
 def plot_radar_map(radar_data, border=None, cities=None, ax=None, tight=True):
