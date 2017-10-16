@@ -42,7 +42,7 @@ def site_map():
 def rains(long, lat):
     p1 = pyproj.Proj(init='epsg:4326')
     p2 = pyproj.Proj(init='epsg:3067')
-    xy = pyproj.transform(p1, p2, long, lat)
+    xy = pyproj.transform(p1, p2, lon, lat)
     # fetch pixel value from tif:
     # ret = []
     # with storage.lock:

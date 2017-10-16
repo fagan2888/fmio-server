@@ -30,7 +30,7 @@ class DataMiner:
         ttime = int(ttime or time.time())
         with self.lock:
             filepath = path.join(self.tempdir, str(ttime))
-            urlretrieve(fmi.gen_url(var='dbz', timestamp=fmi.gen_timestamp(ttime)), filename=filepath)
+            urlretrieve(fmi.gen_url(var='rr', timestamp=fmi.gen_timestamp(ttime)), filename=filepath)
             self.erase_extra_files()
 
     def filenames(self):
