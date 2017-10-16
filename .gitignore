@@ -102,7 +102,7 @@ ENV/
 
 # api key etc.
 api.key
-tmp/
+fmio/data/tmp*
 test.*
 fi_rr*.png
 
