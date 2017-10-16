@@ -13,7 +13,7 @@ if running_py3():
 else:
     from urllib import urlretrieve
 from j24.server import GracefulKiller
-from fmio import fmi, FI_RR_FIG_FILEPATH
+from fmio import basemap, fmi, FI_RR_FIG_FILEPATH
 if running_py3():
     import tempfile
 else:
