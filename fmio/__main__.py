@@ -7,7 +7,6 @@ from j24 import running_py3
 
 import time
 import rasterio
-import tempfile
 import matplotlib.pyplot as plt
 from os import path
 if running_py3():
@@ -16,7 +15,10 @@ else:
     from urllib import urlretrieve
 from j24.server import GracefulKiller
 from fmio import basemap, fmi
-from backports import tempfile
+if running_py3():
+    import tempfile
+else:
+    from backports import tempfile
 
 
 def update_radar_data(output_filepath, debug=False):
