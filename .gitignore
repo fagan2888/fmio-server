@@ -104,6 +104,7 @@ ENV/
 api.key
 tmp/
 test.*
+fi_rr*.png
 
 #pycharm
 .idea

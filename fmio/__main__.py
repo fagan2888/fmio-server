@@ -14,14 +14,14 @@ if running_py3():
 else:
     from urllib import urlretrieve
 from j24.server import GracefulKiller
-from fmio import basemap, fmi
+from fmio import basemap, fmi, FI_RR_FIG_FILEPATH
 if running_py3():
     import tempfile
 else:
     from backports import tempfile
 
 
-def update_radar_data(output_filepath, debug=False):
+def update_radar_figure(output_filepath, debug=False):
     radurl = fmi.gen_url()
     with tempfile.TemporaryDirectory() as tmp_path:
         radarfilepath = path.join(tmp_path, 'Radar-suomi_dbz_eureffin.tif')
@@ -48,7 +48,8 @@ def main():
     killer = GracefulKiller()
     while True:
         time.sleep(sleep_time)
-        update_radar_data('test.png', debug=debug)
+        fig_path = FI_RR_FIG_FILEPATH.format(timestamp='')
+        update_radar_figure(fig_path, debug=debug)
         if killer.kill_now:
             break
 

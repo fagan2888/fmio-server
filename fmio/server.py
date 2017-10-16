@@ -1,7 +1,7 @@
 from flask import Flask, send_from_directory, send_file, url_for
 from dataminer import DataMiner
 from os import path
-from fmio import DATA_DIR
+from fmio import DATA_DIR, FI_RR_FIG_FILEPATH
 import cStringIO
 import threading
 import time
@@ -22,10 +22,11 @@ def update_forecast(debug=False):
     timer.start()
     miner.fetch_radar_data()
 
-start_time = time.time()
-miner.fetch_radar_data(start_time - 5 * 60)
-miner.fetch_radar_data(start_time)
-update_forecast()
+if __name__ == '__main__':
+    start_time = time.time()
+    miner.fetch_radar_data(start_time - 5 * 60)
+    miner.fetch_radar_data(start_time)
+    update_forecast()
 
 app = Flask(__name__)
 
@@ -65,6 +66,6 @@ def file2():
 
 @app.route("/png")
 def png():
-    return send_from_directory(DATA_DIR, "test.png")
+    return send_from_directory(FI_RR_FIG_FILEPATH.format(timestamp=''))
 
 # app.run()
