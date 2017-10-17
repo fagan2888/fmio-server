@@ -55,21 +55,13 @@ def gen_timestamp(ttime=None):
 
 
 def gen_url(width=3400, height=5380, var='rr', timestamp=None):
-    key = read_key()
-    url_radar_ows = 'http://wms.fmi.fi/fmi-apikey/{}/geoserver/Radar/ows?'
-    params = dict(service='WMS',
-                  version='1.3.0',
-                  request='GetMap',
-                  layers='Radar:suomi_{}_eureffin'.format(var),
-                  styles='raster',
-                  bbox='-118331.366,6335621.167,875567.732,7907751.537',
-                  srs='EPSG:3067',
-                  format='image/geotiff',
-                  width=width,
-                  height=height)
+    kws = dict()
     if timestamp is not None:
-        params["time"] = timestamp
-    return url_radar_ows.format(key) + urlencode(params)
+        kws['starttime'] = timestamp
+        kws['endtime'] = timestamp
+    urls = available_maps(**kws)
+    t = urls.index.max()
+    return urls[t]
 
 
 def available_maps(storedQueryID='fmi::radar::composite::rr', **kws):
@@ -83,7 +75,7 @@ def available_maps(storedQueryID='fmi::radar::composite::rr', **kws):
     url_wfs = 'http://data.fmi.fi/fmi-apikey/{}/wfs'.format(key)
     wfs = WebFeatureService(url=url_wfs, version='2.0.0')
     response = wfs.getfeature(storedQueryID=storedQueryID, storedQueryParams=kws)
-    root = etree.fromstring(response.read())
+    root = etree.fromstring(response.read().encode('utf8'))
     result_query = 'wfs:member/omso:GridSeriesObservation'
     file_subquery = 'om:result/gmlcov:RectifiedGridCoverage/gml:rangeSet/gml:File/gml:fileReference'
     time_subquery = 'om:resultTime/gml:TimeInstant/gml:timePosition'
