@@ -6,6 +6,7 @@ from j24 import running_py3
 
 import rasterio
 import numpy as np
+import pandas as pd
 if running_py3():
     from urllib.parse import urlencode
 else:
@@ -17,6 +18,7 @@ from os import path, environ
 from fmio import basemap, USER_DIR
 import datetime
 import time
+import pytz
 
 
 keyfilepath = path.join(USER_DIR, 'api.key')
@@ -70,10 +72,12 @@ def gen_url(width=3400, height=5380, var='rr', timestamp=None):
     return url_radar_ows.format(key) + urlencode(params)
 
 
-def available_maps_between(storedQueryID='fmi::radar::composite::rr', **kws):
+def available_maps(storedQueryID='fmi::radar::composite::rr', **kws):
     """
     If given, start and end times are passed as query parameters, e.g.:
     starttime='2017-10-17T07:00:00Z', endtime='2017-10-17T07:30:00Z'
+
+    output: Series of WMS links with timezone aware index in UTC time
     """
     key = read_key()
     url_wfs = 'http://data.fmi.fi/fmi-apikey/{}/wfs'.format(key)
@@ -88,7 +92,9 @@ def available_maps_between(storedQueryID='fmi::radar::composite::rr', **kws):
         t = result.find(time_subquery, root.nsmap).text
         f = result.find(file_subquery, root.nsmap).text
         d[t] = f
-    return d
+    s = pd.Series(d)
+    s.index = pd.DatetimeIndex(s.index, tz=pytz.utc)
+    return s
 
 
 def plot_radar_map(radar_data, border=None, cities=None, ax=None, crop='fi'):
