@@ -21,6 +21,8 @@ import time
 import pytz
 
 
+DBZ_NODATA = 255
+RR_NODATA = 65535
 FNAME_FORMAT = '%Y%m%d_%H%M.tif'
 KEY_FILE_PATH = path.join(USER_DIR, 'api.key')
 
@@ -55,7 +57,7 @@ def gen_timestamp(ttime=None):
     return dtime.strftime("%Y-%m-%dT%H:%M:00Z")
 
 
-def gen_url(width=3400, height=5380, var='rr', timestamp=None):
+def gen_url(timestamp=None):
     kws = dict()
     if timestamp is not None:
         kws['starttime'] = timestamp
@@ -105,7 +107,7 @@ def download_maps(maps):
 
 def plot_radar_map(radar_data, border=None, cities=None, ax=None, crop='fi'):
     dat = radar_data.read(1)
-    mask = dat==65535
+    mask = dat==RR_NODATA
     d = dat.copy()*0.01
     d[mask] = 0
     datm = np.ma.MaskedArray(data=d, mask=d==0)
