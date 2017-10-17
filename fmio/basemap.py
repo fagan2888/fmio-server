@@ -29,6 +29,7 @@ def box(x0=1e5, y0=6.55e6, x1=6.5e5, y1 = 7e6):
     box.crs = dict(init='epsg:3067')
     return box
 
+
 def plot_border(shape, edgecolor='red', facecolor=(0, 0, 0, 0), **kws):
     return shape.plot(edgecolor=edgecolor, facecolor=facecolor, **kws)
 
