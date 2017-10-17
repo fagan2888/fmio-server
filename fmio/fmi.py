@@ -8,23 +8,24 @@ import rasterio
 import numpy as np
 import pandas as pd
 if running_py3():
-    from urllib.parse import urlencode
+    from urllib.parse import urlencode, urlretrieve
 else:
-    from urllib import urlencode
+    from urllib import urlencode, urlretrieve
 from lxml import etree
 from owslib.wfs import WebFeatureService
 from rasterio.plot import show
 from os import path, environ
-from fmio import basemap, USER_DIR
+from fmio import USER_DIR, DATA_DIR
 import datetime
 import time
 import pytz
 
 
-keyfilepath = path.join(USER_DIR, 'api.key')
+FNAME_FORMAT = '%Y%m%d_%H%M.tif'
+KEY_FILE_PATH = path.join(USER_DIR, 'api.key')
 
 
-def read_key(keyfilepath=keyfilepath):
+def read_key(keyfilepath=KEY_FILE_PATH):
     if "FMI_API_KEY" in environ:
         return environ['FMI_API_KEY']
     with open(keyfilepath, 'r') as keyfile:
@@ -61,6 +62,7 @@ def gen_url(width=3400, height=5380, var='rr', timestamp=None):
         kws['endtime'] = timestamp
     urls = available_maps(**kws)
     t = urls.index.max()
+    # Should we also return t?
     return urls[t]
 
 
@@ -87,6 +89,18 @@ def available_maps(storedQueryID='fmi::radar::composite::rr', **kws):
     s = pd.Series(d)
     s.index = pd.DatetimeIndex(s.index, tz=pytz.utc)
     return s
+
+
+def download_maps(maps):
+    """maps: Series"""
+    save_paths = maps.copy()
+    save_dir = path.join(DATA_DIR, 'tmp')
+    for t, url in maps.iteritems():
+        filename = t.strftime(FNAME_FORMAT)
+        filepath = path.join(save_dir, filename)
+        urlretrieve(url, filename=filepath)
+        save_paths.loc[t] = filepath
+    return save_paths
 
 
 def plot_radar_map(radar_data, border=None, cities=None, ax=None, crop='fi'):
