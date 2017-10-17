@@ -10,6 +10,8 @@ if running_py3():
     from urllib.parse import urlencode
 else:
     from urllib import urlencode
+from lxml import etree
+from owslib.wfs import WebFeatureService
 from rasterio.plot import show
 from os import path, environ
 from fmio import basemap, USER_DIR
@@ -52,7 +54,7 @@ def gen_timestamp(ttime=None):
 
 def gen_url(width=3400, height=5380, var='rr', timestamp=None):
     key = read_key()
-    url_base = 'http://wms.fmi.fi/fmi-apikey/{}/geoserver/Radar/ows?'
+    url_radar_ows = 'http://wms.fmi.fi/fmi-apikey/{}/geoserver/Radar/ows?'
     params = dict(service='WMS',
                   version='1.3.0',
                   request='GetMap',
@@ -65,16 +67,28 @@ def gen_url(width=3400, height=5380, var='rr', timestamp=None):
                   height=height)
     if timestamp is not None:
         params["time"] = timestamp
-    # old API params
-    params_old = dict(service='WMS',
-                      request='GetMap',
-                      format='image/geotiff',
-                      bbox='-118331.366,6335621.167,875567.732,7907751.537',
-                      width=1700,
-                      height=2500,
-                      srs='EPSG:3067',
-                      layers='Radar:suomi_dbz_eureffin')
-    return url_base.format(key) + urlencode(params)
+    return url_radar_ows.format(key) + urlencode(params)
+
+
+def available_maps_between(storedQueryID='fmi::radar::composite::rr', **kws):
+    """
+    If given, start and end times are passed as query parameters, e.g.:
+    starttime='2017-10-17T07:00:00Z', endtime='2017-10-17T07:30:00Z'
+    """
+    key = read_key()
+    url_wfs = 'http://data.fmi.fi/fmi-apikey/{}/wfs'.format(key)
+    wfs = WebFeatureService(url=url_wfs, version='2.0.0')
+    response = wfs.getfeature(storedQueryID=storedQueryID, storedQueryParams=kws)
+    root = etree.fromstring(response.read())
+    result_query = 'wfs:member/omso:GridSeriesObservation'
+    file_subquery = 'om:result/gmlcov:RectifiedGridCoverage/gml:rangeSet/gml:File/gml:fileReference'
+    time_subquery = 'om:resultTime/gml:TimeInstant/gml:timePosition'
+    d = dict()
+    for result in root.findall(result_query, root.nsmap):
+        t = result.find(time_subquery, root.nsmap).text
+        f = result.find(file_subquery, root.nsmap).text
+        d[t] = f
+    return d
 
 
 def plot_radar_map(radar_data, border=None, cities=None, ax=None, crop='fi'):
