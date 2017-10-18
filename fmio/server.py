@@ -25,10 +25,9 @@ def update_forecast():
     miner.fetch_radar_data()
 
 
-if __name__ == '__main__':
-    start_time = time.time()
-    miner.fetch_radar_data(start_time - interval)
-    update_forecast()
+start_time = time.time()
+miner.fetch_radar_data(start_time - interval)
+update_forecast()
 
 app = Flask(__name__)
 

@@ -1,8 +1,6 @@
 import threading
 from os import path, remove, listdir, makedirs
 
-temp_extension = ".tmp"
-
 
 class Storage:
     def __init__(self, tempdir):
@@ -22,7 +20,15 @@ class Storage:
         """Returns names of the stored files sorted as newest to oldest"""
         with self.lock:
             filenames = listdir(self.tempdir)
-        filenames = filter(lambda x: not x.endswith(temp_extension), filenames)
+
+        def represents_int(s):
+            try:
+                int(s)
+                return True
+            except ValueError:
+                return False
+
+        filenames = filter(lambda x: not represents_int(x), filenames)
         filenames = map(int, filenames)
         filenames.sort(reverse=True)
         filenames = map(str, filenames)
