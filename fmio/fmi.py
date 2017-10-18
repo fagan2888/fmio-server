@@ -90,7 +90,7 @@ def available_maps(storedQueryID='fmi::radar::composite::rr', **kws):
         d[t] = f
     s = pd.Series(d)
     s.index = pd.DatetimeIndex(s.index, tz=pytz.utc)
-    return s
+    return s.sort_index()
 
 
 def download_maps(maps):
