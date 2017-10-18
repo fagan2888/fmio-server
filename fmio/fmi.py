@@ -40,21 +40,16 @@ def to_datetime(ttime):
 
 
 def to_time(dtime):
-    ttime = (dtime - datetime.datetime(1970, 1, 1)).total_seconds()
+    ttime = (dtime - datetime.datetime(1970, 1, 1, tzinfo=pytz.utc)).total_seconds()
     return ttime
 
 
-def normalize_datetime(dtime):
-    dtime = dtime.replace(minute=(dtime.minute // 5) * 5, second=0, microsecond=0)
-    return dtime
+def datetime_tostring(dtime):
+    return dtime.strftime(FNAME_FORMAT)
 
 
-def gen_timestamp(ttime=None):
-    """converts given seconds since epoch to a valid timestamp for url"""
-    ttime = ttime or time.time()
-    dtime = to_datetime(ttime)
-    dtime = normalize_datetime(dtime)
-    return dtime.strftime("%Y-%m-%dT%H:%M:00Z")
+def string_todatetime(dstr):
+    return datetime.datetime.strptime(dstr, FNAME_FORMAT)
 
 
 def gen_url(timestamp=None):

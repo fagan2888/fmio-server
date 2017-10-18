@@ -1,35 +1,51 @@
-import thread
-import time
-from os import path, remove, rename
-from urllib import urlretrieve
+import threading
 
-from fmio import storage
+import requests
+from pandas.core.generic import NDFrame
+
 from fmio import fmi
-
-download_extension = ".dl"
-
-
-class DataMiner(storage.Storage):
-    def __init__(self, tempdir, stored_count=6):
-        storage.Storage.__init__(self, tempdir)
-        self.stored_count = stored_count
-
-    def erase_extra_files(self):
-        with self.lock:
-            for filename in self.filenames()[self.stored_count:]:
-                remove(path.join(self.tempdir, filename))
-
-    def fetch_radar_data(self, ttime=None):
-        """ttime is seconds since epoch, defaults to time.time()"""
-        ttime = int(time.time() if ttime is None else ttime)
-        thread.start_new_thread(_fetch, (self, ttime))
+from fmio.storage import Storage
+from fmio.timer import TimedTask
 
 
-def _fetch(miner, ttime):  # type: (DataMiner, float) -> None
-    filename = str(ttime)
-    download_filepath = path.join(miner.tempdir, filename + download_extension)
-    url = fmi.gen_url(timestamp=fmi.gen_timestamp(ttime))
-    urlretrieve(url, filename=download_filepath)
-    with miner.lock:
-        rename(download_filepath, path.join(miner.tempdir, filename))
-        miner.erase_extra_files()
+class DataMiner(TimedTask):
+    def __init__(self, tempdir1, tempdir2, interval_mins=5):
+        TimedTask.__init__(self, interval_mins=interval_mins)
+        self.temps = [Storage(tempdir1), Storage(tempdir2)]
+        self.temp_swap_lock = threading.RLock()
+        self.tempidx = 0
+
+    def swap_temps(self):
+        with self.temp_swap_lock:
+            self.tempidx = (self.tempidx + 1) % len(self.temps)
+
+    def current_temp(self):
+        return self.temps[self.tempidx]
+
+    def download_temp(self):
+        return self.temps[(self.tempidx + 1) % len(self.temps)]
+
+    def update_maps(self):
+        urls = fmi.available_maps().tail(2)  # type: NDFrame
+
+        def get_file(t):
+            dtime, url = t
+            r = requests.get(url, stream=True)
+            r.raw.decode_content = True
+            return dtime, r
+
+        files = map(get_file, urls.iteritems())
+        self.download_temp().remove_all_files()
+        for t in files:
+            dtime, r = t
+            # DO EXTRAPOLATION HERE
+            # with rasterio.open(t[1].raw) as data:
+            #    print(data.read(1))
+            with open(self.download_temp().path(dtime.strftime(fmi.FNAME_FORMAT)), mode="w+b") as f:
+                for chunk in r:
+                    f.write(chunk)
+
+        self.swap_temps()
+
+    def timed_task(self):
+        self.update_maps()
