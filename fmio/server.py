@@ -6,7 +6,7 @@ import cStringIO
 import threading
 import time
 import pyproj
-from storage import Storage
+from fmio.storage import Storage
 import json
 import rasterio
 
@@ -47,9 +47,9 @@ def rains(lon, lat):
     p2 = pyproj.Proj(init='epsg:3067')
     xy = pyproj.transform(p1, p2, lon, lat)
     ret = []
-    with store.lock:
-        for filename in store.filenames():
-            with rasterio.open(path.join(store.tempdir, filename)) as data:
+    with miner.lock:
+        for filename in miner.filenames():
+            with rasterio.open(path.join(miner.tempdir, filename)) as data:
                 value = list(data.sample([xy]))[0][0]
                 print(xy)
                 print(data.sample([xy]))

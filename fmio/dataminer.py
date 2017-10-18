@@ -3,7 +3,7 @@ import time
 from os import path, remove, rename
 from urllib import urlretrieve
 
-import storage
+from fmio import storage
 from fmio import fmi
 
 download_extension = ".dl"
