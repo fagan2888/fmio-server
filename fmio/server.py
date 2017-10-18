@@ -1,33 +1,21 @@
-from flask import Flask, send_from_directory, send_file, url_for
-from dataminer import DataMiner
-from os import path
-from fmio import DATA_DIR, FI_RR_FIG_FILEPATH
 import cStringIO
-import threading
-import time
-import pyproj
-from fmio.storage import Storage
 import json
+from os import path
+
+import pyproj
 import rasterio
+from flask import Flask, send_from_directory, send_file, url_for
 
-interval = 5*60
-tempdir = path.join(DATA_DIR, "tmp")
-tempstore = path.join(DATA_DIR, "tmp_store")
+from dataminer import DataMiner
+from fmio import DATA_DIR, FI_RR_FIG_FILEPATH
+from fmio import fmi
 
-miner = DataMiner(tempdir, stored_count=3)
-store = Storage(tempstore)
-
-
-def update_forecast():
-    timer = threading.Timer(interval, update_forecast)
-    timer.daemon = True
-    timer.start()
-    miner.fetch_radar_data()
-
-
-start_time = time.time()
-miner.fetch_radar_data(start_time - interval)
-update_forecast()
+miner = DataMiner(
+    path.join(DATA_DIR, "tmp1"),
+    path.join(DATA_DIR, "tmp2"),
+    interval_mins=5
+)
+miner.start()
 
 app = Flask(__name__)
 
@@ -47,28 +35,24 @@ def rains(lon, lat):
     p2 = pyproj.Proj(init='epsg:3067')
     xy = pyproj.transform(p1, p2, lon, lat)
     ret = []
-    with miner.lock:
-        for filename in miner.filenames():
-            with rasterio.open(path.join(miner.tempdir, filename)) as data:
+    with miner.temp_swap_lock:
+        temp = miner.current_temp()
+        for filename in temp.filenames():
+            with rasterio.open(temp.path(filename)) as data:
                 value = list(data.sample([xy]))[0][0]
                 print(xy)
                 print(data.sample([xy]))
                 print(list(data.sample([xy])))
-                ret.append({"time": int(filename), "rain": int(value)})
+                ret.append({"time": str(fmi.string_todatetime(filename)), "rain": int(value)})
     return json.dumps(ret)
 
 
 @app.route("/file")
 def file1():
-    with miner.lock:
-        with open(miner.filepaths()[0]) as f:
+    with miner.temp_swap_lock:
+        # return send_from_directory(miner.tempdir, miner.filenames()[0])
+        with open(miner.current_temp().filepaths()[0]) as f:
             return send_file(cStringIO.StringIO(f.read()), mimetype="image/png")
-
-
-@app.route("/file2")
-def file2():
-    with miner.lock:
-        return send_from_directory(miner.tempdir, miner.filenames()[0])
 
 
 @app.route("/png")

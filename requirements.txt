@@ -10,5 +10,6 @@ backports.tempfile
 pyproj
 lxml
 owslib
+requests
 
 -r pyoptflow/requirements.txt

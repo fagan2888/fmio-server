@@ -40,3 +40,6 @@ class Storage:
     def two_newest(self):
         filepaths = self.filepaths()
         return filepaths[0], filepaths[1]
+
+    def path(self, filename=""):
+        return path.join(self.tempdir, filename)
