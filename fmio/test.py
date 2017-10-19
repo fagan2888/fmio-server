@@ -57,6 +57,7 @@ dl = urls.tail(2)
 rad_crs = rads.iloc[0].read_crs().data
 rads = paths.apply(rasterio.open)
 crops, tr = raster.crop_rasters(rads, **raster.DEFAULT_CORNERS)
+rads.apply(lambda x: x.close())
 rr = fmi.raw2rr(crops)
 fcast = forecast.forecast(rr)
 for fc in fcast.values:

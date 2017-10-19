@@ -5,14 +5,14 @@ __metaclass__ = type
 import threading
 
 import requests
-from pandas.core.generic import NDFrame
 
-from fmio import fmi
+from fmio import fmi, raster, forecast
 from fmio.storage import Storage
 from fmio.timer import TimedTask
 import datetime
 import pytz
 import pandas
+import rasterio
 
 
 class DataMiner(TimedTask):
@@ -52,6 +52,18 @@ class DataMiner(TimedTask):
             r = requests.get(url, stream=False)
             r.raw.decode_content = True
             return dtime, r
+
+        def get_raw(url):
+            r = requests.get(url, stream=False)
+            r.raw.decode_content = True
+            return r
+
+        filess = urls.apply(get_raw)
+        rasters = filess.apply(rasterio.open)
+        crops, translate = raster.crop_rasters(rasters, **raster.DEFAULT_CORNERS)
+        rasters.apply(lambda x: x.close())
+        rr = fmi.raw2rr(crops)
+        fcast = forecast.forecast(rr)
 
         files = map(get_file, urls.iteritems())
         self.download_temp().remove_all_files()
