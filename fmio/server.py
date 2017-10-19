@@ -10,7 +10,7 @@ import pyproj
 import rasterio
 from flask import Flask, send_from_directory, send_file, url_for
 
-from dataminer import DataMiner
+from fmio.dataminer import DataMiner
 from fmio import DATA_DIR, FI_RR_FIG_FILEPATH
 from fmio import fmi
 import datetime
