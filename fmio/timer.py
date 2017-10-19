@@ -15,7 +15,7 @@ class TimedTask(Thread):
     def run(self):
         while True:
             if self.dtime < datetime.datetime.utcnow():
-                while self.dtime < datetime.datetime.utcnow():
+                while self.dtime <= datetime.datetime.utcnow():
                     self.dtime += datetime.timedelta(minutes=self.interval_mins)
                 self.timed_task()
             time.sleep(1)
