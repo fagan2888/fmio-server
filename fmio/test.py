@@ -4,13 +4,13 @@ __metaclass__ = type
 
 import rasterio
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from os import path
 from fmio import fmi, basemap, forecast, raster
 from j24 import home, ensure_join
 
 plt.close('all')
-
 
 
 def plot_save_rr(rr, transform, border, rr_crs, fname):
@@ -50,24 +50,26 @@ x0=1.1e5
 y0=6.55e6
 x1=6.5e5
 y1=7e6
-urls = fmi.available_maps(**t_range)
+#urls = fmi.available_maps(**t_range)
+fakeindex = pd.DatetimeIndex(freq='5min', start=t_range['starttime'], end=t_range['endtime'])
+urls = pd.Series(index=fakeindex) # fake urls
 #url = fmi.gen_url(timestamp='2017-10-17T07:00:00Z')
 dl = urls.tail(2)
 #fmi.download_maps(urls)
-#paths = fmi.download_maps(dl)
+paths = fmi.download_maps(dl)
 savedir = ensure_join(home(), 'results', 'sataako')
-
 
 
 ### FORECAST AND SAVE LOGIC ###
 rads = paths.apply(rasterio.open)
 meta = rads.iloc[0].meta.copy()
+dtype = meta['dtype']
 crops, tr = raster.crop_rasters(rads, **raster.DEFAULT_CORNERS)
 meta.update(dict(driver='GTiff',
                  height=crops.iloc[0].shape[0],
                  width=crops.iloc[0].shape[1],
-                 transform=tr,
-                 dtype=rasterio.float64))
+                 transform=tr))
+rad_crs = rads.iloc[0].read_crs().data
 rads.apply(lambda x: x.close())
 rr = fmi.raw2rr(crops)
 fcast = forecast.forecast(rr)
@@ -76,12 +78,14 @@ for t, fc in fcast.iteritems():
     fc_filled[np.isnan(fc)] = 0
     savepath = path.join(savedir, t.strftime(fmi.FNAME_FORMAT))
     with rasterio.open(savepath, 'w', **meta) as dest:
-        dest.write_band(1, fc_filled)
+        dest.write_band(1, fmi.rr2raw(fc_filled))
 #################################
+    fname = t.strftime(fmi.FNAME_TIME_FORMAT) + '.png'
+    plot_save_rr(fc_filled, tr, border, rad_crs, fname)
 
-rad_crs = rads.iloc[0].read_crs().data
 with rasterio.open(savepath) as savedraster:
-    plot_save_rr(savedraster.read(1), tr, border, rad_crs, 'test.png')
+    rate = fmi.raw2rr(savedraster.read(1))
+    plot_save_rr(rate, tr, border, rad_crs, 'test.png')
 
 #v = forecast.motion(rru[0], rru[1])
 #out = forecast.forecast()

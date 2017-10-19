@@ -23,13 +23,20 @@ import pytz
 
 DBZ_NODATA = 255
 RR_NODATA = 65535
+RR_FACTOR = 100
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-FNAME_FORMAT = '%Y%m%d_%H%M.tif'
+FNAME_TIME_FORMAT = '%Y%m%d_%H%M'
+FNAME_FORMAT = FNAME_TIME_FORMAT + '.tif'
 KEY_FILE_PATH = path.join(USER_DIR, 'api.key')
 
 
 def raw2rr(raw):
-    return raw*0.01
+    return raw/RR_FACTOR
+
+
+def rr2raw(rr, dtype='uint16'):
+    scaled = rr*RR_FACTOR
+    return scaled.round().astype(dtype)
 
 
 def read_key(keyfilepath=KEY_FILE_PATH):
@@ -85,14 +92,21 @@ def available_maps(storedQueryID='fmi::radar::composite::rr', **kws):
     return s.sort_index()
 
 
-def download_maps(maps):
-    """maps: Series"""
-    save_paths = maps.copy()
+def download_maps(urls):
+    """
+    Download rainmaps if they don't exist already. Mainly for testing purposes.
+
+    urls: Series
+
+    Returns paths of the downloaded files.
+    """
+    save_paths = urls.copy()
     save_dir = path.join(DATA_DIR, 'tmp')
-    for t, url in maps.iteritems():
+    for t, url in urls.iteritems():
         filename = t.strftime(FNAME_FORMAT)
         filepath = path.join(save_dir, filename)
-        urlretrieve(url, filename=filepath)
+        if not path.isfile(filepath):
+            urlretrieve(url, filename=filepath)
         save_paths.loc[t] = filepath
     return save_paths
 
