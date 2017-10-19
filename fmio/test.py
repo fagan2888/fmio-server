@@ -57,7 +57,7 @@ dl = urls.tail(2)
 #paths = fmi.download_maps(dl)
 savedir = ensure_join(home(), 'results', 'sataako')
 
-#rad_crs = rads.iloc[0].read_crs().data
+
 
 ### FORECAST AND SAVE LOGIC ###
 rads = paths.apply(rasterio.open)
@@ -79,6 +79,9 @@ for t, fc in fcast.iteritems():
         dest.write_band(1, fc_filled)
 #################################
 
+rad_crs = rads.iloc[0].read_crs().data
+with rasterio.open(savepath) as savedraster:
+    plot_save_rr(savedraster.read(1), tr, border, rad_crs, 'test.png')
 
 #v = forecast.motion(rru[0], rru[1])
 #out = forecast.forecast()
