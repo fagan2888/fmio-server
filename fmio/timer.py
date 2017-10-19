@@ -6,7 +6,7 @@ from threading import Thread
 class TimedTask(Thread):
     def __init__(self, interval_mins=5):
         Thread.__init__(self)
-        self.daemon = True
+        self.daemon = False
         self.interval_mins = interval_mins
         dtime = datetime.datetime.utcnow()
         dtime = dtime.replace(minute=(dtime.minute // self.interval_mins) * self.interval_mins)
