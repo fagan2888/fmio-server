@@ -6,6 +6,9 @@ from pandas.core.generic import NDFrame
 from fmio import fmi
 from fmio.storage import Storage
 from fmio.timer import TimedTask
+import datetime
+import pytz
+import pandas
 
 
 class DataMiner(TimedTask):
@@ -26,11 +29,23 @@ class DataMiner(TimedTask):
         return self.temps[(self.tempidx + 1) % len(self.temps)]
 
     def update_maps(self):
+        print("Checking if maps need updating.")
         urls = fmi.available_maps().tail(2)  # type: NDFrame
+        dates = map(lambda x: datetime.datetime.strptime(x, fmi.FNAME_FORMAT), self.current_temp().filenames())
+        dates = map(lambda x: x.replace(tzinfo=pytz.UTC), dates)
+        dates.sort()
+        for d in dates[-1:]:
+            d = pandas.Timestamp(d)
+            print(d, urls.tail(1).keys()[0])
+            if d >= urls.tail(1).keys()[0]:
+                print("No new maps, not updating.")
+                return
+
+        print("New maps found, updating.")
 
         def get_file(t):
             dtime, url = t
-            r = requests.get(url, stream=True)
+            r = requests.get(url, stream=False)
             r.raw.decode_content = True
             return dtime, r
 
@@ -46,6 +61,10 @@ class DataMiner(TimedTask):
                     f.write(chunk)
 
         self.swap_temps()
+        print("Successfully updated maps.")
 
     def timed_task(self):
-        self.update_maps()
+        try:
+            self.update_maps()
+        except Exception as e:
+            print("Got an unexpected exception, ignoring:", e.message)

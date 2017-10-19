@@ -8,17 +8,17 @@ class TimedTask(Thread):
         Thread.__init__(self)
         self.daemon = True
         self.interval_mins = interval_mins
-        dtime = datetime.datetime.now()
+        dtime = datetime.datetime.utcnow()
         dtime = dtime.replace(minute=(dtime.minute // self.interval_mins) * self.interval_mins)
         self.dtime = dtime
 
     def run(self):
         while True:
-            if self.dtime < datetime.datetime.now():
-                self.timed_task()
-                while self.dtime < datetime.datetime.now():
+            if self.dtime < datetime.datetime.utcnow():
+                while self.dtime < datetime.datetime.utcnow():
                     self.dtime += datetime.timedelta(minutes=self.interval_mins)
-            time.sleep(60)
+                self.timed_task()
+            time.sleep(1)
 
     def timed_task(self):
         raise NotImplementedError("Please implement this method in inheriting class")

@@ -23,6 +23,7 @@ import pytz
 
 DBZ_NODATA = 255
 RR_NODATA = 65535
+TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 FNAME_FORMAT = '%Y%m%d_%H%M.tif'
 KEY_FILE_PATH = path.join(USER_DIR, 'api.key')
 
@@ -42,14 +43,6 @@ def to_datetime(ttime):
 def to_time(dtime):
     ttime = (dtime - datetime.datetime(1970, 1, 1, tzinfo=pytz.utc)).total_seconds()
     return ttime
-
-
-def datetime_tostring(dtime):
-    return dtime.strftime(FNAME_FORMAT)
-
-
-def string_todatetime(dstr):
-    return datetime.datetime.strptime(dstr, FNAME_FORMAT)
 
 
 def gen_url(timestamp=None):

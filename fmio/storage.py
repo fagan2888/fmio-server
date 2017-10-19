@@ -20,26 +20,11 @@ class Storage:
         """Returns names of the stored files sorted as newest to oldest"""
         with self.lock:
             filenames = listdir(self.tempdir)
-
-        def represents_int(s):
-            try:
-                int(s)
-                return True
-            except ValueError:
-                return False
-
-        filenames = filter(lambda x: not represents_int(x), filenames)
-        filenames = map(int, filenames)
-        filenames.sort(reverse=True)
-        filenames = map(str, filenames)
+        filenames.sort()
         return filenames
 
     def filepaths(self):
         return map(lambda x: path.join(self.tempdir, x), self.filenames())
-
-    def two_newest(self):
-        filepaths = self.filepaths()
-        return filepaths[0], filepaths[1]
 
     def path(self, filename=""):
         return path.join(self.tempdir, filename)
