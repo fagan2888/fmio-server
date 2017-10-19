@@ -28,6 +28,10 @@ FNAME_FORMAT = '%Y%m%d_%H%M.tif'
 KEY_FILE_PATH = path.join(USER_DIR, 'api.key')
 
 
+def raw2rr(raw):
+    return raw*0.01
+
+
 def read_key(keyfilepath=KEY_FILE_PATH):
     if "FMI_API_KEY" in environ:
         return environ['FMI_API_KEY']

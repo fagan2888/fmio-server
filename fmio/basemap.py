@@ -6,6 +6,7 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 from os import path
 from fmio import DATA_DIR
+from fmio.raster import DEFAULT_CORNERS
 
 
 def read_basemap(shapefilepath, country_key='ADMIN', country='Finland'):
@@ -23,7 +24,8 @@ def border(**kws):
     return read_basemap(country_filepath, country_key='ADMIN', **kws)
 
 
-def box(x0=1.1e5, y0=6.55e6, x1=6.5e5, y1=7e6):
+def box(x0=DEFAULT_CORNERS['x0'], y0=DEFAULT_CORNERS['y0'],
+        x1=DEFAULT_CORNERS['x1'], y1=DEFAULT_CORNERS['y1']):
     p = Polygon([(x0, y0), (x1, y0), (x1, y1), (x0, y1)])
     box = gpd.GeoSeries(p)
     box.crs = dict(init='epsg:3067')

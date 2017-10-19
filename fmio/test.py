@@ -12,8 +12,8 @@ plt.close('all')
 
 
 
-def plot_save_rr(rr, transform, border, fname):
-    ax = border.to_crs(rad_crs).plot(zorder=0)
+def plot_save_rr(rr, transform, border, rr_crs, fname):
+    ax = border.to_crs(rr_crs).plot(zorder=0)
     raster.plot_rr(rr, transform=transform, ax=ax, zorder=10)
     ax.set_axis_off()
     ax.get_figure().savefig(path.join(savedir, fname), bbox_inches='tight')
@@ -56,24 +56,23 @@ dl = urls.tail(2)
 #paths = fmi.download_maps(dl)
 rads = paths.apply(rasterio.open)
 rad_crs = rads.iloc[0].read_crs().data
-rr = []
-rru = []
-for rad in rads.values:
-    cropped, tr = raster.crop_raster(rad, x0, y0, x1, y1)
-    rate = cropped*0.01
-    rr.append(rate)
-    rru.append(forecast.rr2ubyte(rate))
+crops, tr = raster.crop_rasters(rads, **raster.DEFAULT_CORNERS)
+rr = fmi.raw2rr(crops)
+fcast = forecast.forecast(rr)
+for fc in fcast.values:
+    plt.figure()
+    raster.plot_rr(fc)
 #v = forecast.motion(rru[0], rru[1])
-out = forecast.extrapolate(rr[1], v, 1)
+#out = forecast.forecast()
 
 savedir = ensure_join(home(), 'results', 'sataako')
 
-plot_save_rr(rr[0], tr, border, 'in0.png')
-plot_save_rr(rr[1], tr, border, 'in1.png')
-plot_save_rr(out, tr, border, 'out.png')
+#plot_save_rr(rr[0], tr, border, rad_crs, 'in0.png')
+#plot_save_rr(rr[1], tr, border, rad_crs, 'in1.png')
+#plot_save_rr(out, tr, border, rad_crs, 'out.png')
 
 f = paths.iloc[0]
-box = basemap.box(x0=x0, y0=y0, x1=x1, y1=y1)
+box = basemap.box(**raster.DEFAULT_CORNERS)
 
 
 
