@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 __metaclass__ = type
 
 import rasterio
+import numpy as np
 import matplotlib.pyplot as plt
 from os import path
 from fmio import fmi, basemap, forecast, raster
@@ -54,19 +55,33 @@ urls = fmi.available_maps(**t_range)
 dl = urls.tail(2)
 #fmi.download_maps(urls)
 #paths = fmi.download_maps(dl)
-rad_crs = rads.iloc[0].read_crs().data
+savedir = ensure_join(home(), 'results', 'sataako')
+
+#rad_crs = rads.iloc[0].read_crs().data
+
+### FORECAST AND SAVE LOGIC ###
 rads = paths.apply(rasterio.open)
+meta = rads.iloc[0].meta.copy()
 crops, tr = raster.crop_rasters(rads, **raster.DEFAULT_CORNERS)
+meta.update(dict(driver='GTiff',
+                 height=crops.iloc[0].shape[0],
+                 width=crops.iloc[0].shape[1],
+                 transform=tr,
+                 dtype=rasterio.float64))
 rads.apply(lambda x: x.close())
 rr = fmi.raw2rr(crops)
 fcast = forecast.forecast(rr)
-for fc in fcast.values:
-    plt.figure()
-    raster.plot_rr(fc)
+for t, fc in fcast.iteritems():
+    fc_filled = fc.copy()
+    fc_filled[np.isnan(fc)] = 0
+    savepath = path.join(savedir, t.strftime(fmi.FNAME_FORMAT))
+    with rasterio.open(savepath, 'w', **meta) as dest:
+        dest.write_band(1, fc_filled)
+#################################
+
+
 #v = forecast.motion(rru[0], rru[1])
 #out = forecast.forecast()
-
-savedir = ensure_join(home(), 'results', 'sataako')
 
 #plot_save_rr(rr[0], tr, border, rad_crs, 'in0.png')
 #plot_save_rr(rr[1], tr, border, rad_crs, 'in1.png')
