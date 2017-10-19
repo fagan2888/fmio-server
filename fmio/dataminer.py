@@ -3,16 +3,15 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 __metaclass__ = type
 
 import threading
-
 import requests
-
-from fmio import fmi, raster, forecast
-from fmio.storage import Storage
-from fmio.timer import TimedTask
 import datetime
 import pytz
 import pandas
 import rasterio
+from os import path
+from fmio import fmi, raster, forecast
+from fmio.storage import Storage
+from fmio.timer import TimedTask
 
 
 class DataMiner(TimedTask):
@@ -60,10 +59,13 @@ class DataMiner(TimedTask):
 
         filess = urls.apply(get_raw)
         rasters = filess.apply(rasterio.open)
-        crops, translate = raster.crop_rasters(rasters, **raster.DEFAULT_CORNERS)
+        crops, translate, meta = raster.crop_rasters(rasters, **raster.DEFAULT_CORNERS)
         rasters.apply(lambda x: x.close())
-        rr = fmi.raw2rr(crops)
-        fcast = forecast.forecast(rr)
+        rrs = fmi.raw2rr(crops)
+        fcast = forecast.forecast(rrs)
+        for t, fc in fcast.iteritems():
+            savepath = self.download_temp().path(t.strftime(fmi.FNAME_FORMAT))
+            raster.write_rr_geotiff(fc, meta, savepath)
 
         files = map(get_file, urls.iteritems())
         self.download_temp().remove_all_files()
@@ -72,9 +74,9 @@ class DataMiner(TimedTask):
             # DO EXTRAPOLATION HERE
             # with rasterio.open(t[1].raw) as data:
             #    print(data.read(1))
-            with open(self.download_temp().path(dtime.strftime(fmi.FNAME_FORMAT)), mode="w+b") as f:
-                for chunk in r:
-                    f.write(chunk)
+            #with open(self.download_temp().path(dtime.strftime(fmi.FNAME_FORMAT)), mode="w+b") as f:
+            #    for chunk in r:
+            #        f.write(chunk)
 
         self.swap_temps()
         print("Successfully updated maps.")

@@ -24,7 +24,7 @@ def plot_save_rr(rr, transform, border, rr_crs, fname):
 def crop_and_plot(f):
     radar = rasterio.open(f)
     ax = border.to_crs(radar.read_crs().data).plot(zorder=0)
-    windowed, transwin = raster.crop_raster(radar, x0=x0, y0=y0, x1=x1, y1=y1)
+    windowed, transwin, meta = raster.crop_raster(radar, x0=x0, y0=y0, x1=x1, y1=y1)
     rasterio.plot.show(windowed, transform=transwin, ax=ax, zorder=10)
 
 
@@ -62,13 +62,8 @@ savedir = ensure_join(home(), 'results', 'sataako')
 
 ### FORECAST AND SAVE LOGIC ###
 rads = paths.apply(rasterio.open)
-meta = rads.iloc[0].meta.copy()
+crops, tr, meta = raster.crop_rasters(rads, **raster.DEFAULT_CORNERS)
 dtype = meta['dtype']
-crops, tr = raster.crop_rasters(rads, **raster.DEFAULT_CORNERS)
-meta.update(dict(driver='GTiff',
-                 height=crops.iloc[0].shape[0],
-                 width=crops.iloc[0].shape[1],
-                 transform=tr))
 rad_crs = rads.iloc[0].read_crs().data
 rads.apply(lambda x: x.close())
 rr = fmi.raw2rr(crops)
@@ -83,6 +78,7 @@ for t, fc in fcast.iteritems():
 with rasterio.open(savepath) as savedraster:
     rate = fmi.raw2rr(savedraster.read(1))
     plot_save_rr(rate, tr, border, rad_crs, 'test.png')
+    plt.close()
 
 #v = forecast.motion(rru[0], rru[1])
 #out = forecast.forecast()

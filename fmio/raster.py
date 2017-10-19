@@ -27,19 +27,24 @@ def crop_raster(raster, x0=DEFAULT_CORNERS['x0'], y0=DEFAULT_CORNERS['y0'],
                 x1=DEFAULT_CORNERS['x1'], y1=DEFAULT_CORNERS['y1']):
     win = rasterio.windows.from_bounds(left=x0, bottom=y0, right=x1, top=y1,
                                        transform=raster.transform)
-    transwin = rasterio.windows.transform(window=win,
-                                          transform=raster.transform)
-    windowed = raster.read(1, window=win)
-    return windowed, transwin
+    transform = rasterio.windows.transform(window=win,
+                                           transform=raster.transform)
+    cropped = raster.read(1, window=win)
+    meta = raster.meta.copy()
+    meta.update(dict(driver='GTiff',
+                     height=cropped.shape[0],
+                     width=cropped.shape[1],
+                     transform=transform))
+    return cropped, transform, meta
 
 
 def crop_rasters(rasters, x0=DEFAULT_CORNERS['x0'], y0=DEFAULT_CORNERS['y0'],
                  x1=DEFAULT_CORNERS['x1'], y1=DEFAULT_CORNERS['y1']):
     crops = []
     for raster in rasters.values:
-        cropped, transform = crop_raster(raster, x0, y0, x1, y1)
+        cropped, transform, meta = crop_raster(raster, x0, y0, x1, y1)
         crops.append(cropped)
-    return pd.Series(index=rasters.index, data=crops), transform
+    return pd.Series(index=rasters.index, data=crops), transform, meta
 
 
 def write_rr_geotiff(rr, meta, savepath):
