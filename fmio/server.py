@@ -47,7 +47,7 @@ def forecast(lon, lat):
                     dtime = datetime.datetime.strptime(filename, fmi.FNAME_FORMAT).replace(tzinfo=pytz.UTC)
                     # if dtime > datetime.datetime.utcnow(): # Only show forecasts newer than "now"
                     stime = dtime.strftime(fmi.TIME_FORMAT)
-                    ret.append({"time": stime, "rain": float(value)})
+                    ret.append({"time": stime, "rain_intensity": float(value), "rain_intensity_mm_h": float(value)*0.01})
     return json.dumps({"time_format": fmi.TIME_FORMAT, "timezone": str(pytz.UTC), "forecasts": ret})
 
 
