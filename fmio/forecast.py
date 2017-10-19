@@ -22,7 +22,7 @@ def rr2ubyte(rr, R_min=0.05, R_max=10.0, filter_stddev=3.0):
 
 
 def motion(rr0ubyte, rr1ubyte, lam=25.0, num_iter=250, num_levels=6):
-    return extract_motion_proesmans(rr0ubyte, rr2ubyte, lam=lam,
+    return extract_motion_proesmans(rr0ubyte, rr1ubyte, lam=lam,
                                     num_iter=num_iter,
                                     num_levels=num_levels)[0]
 
