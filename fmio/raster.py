@@ -5,6 +5,7 @@ __metaclass__ = type
 import numpy as np
 import pandas as pd
 import rasterio
+from fmio import fmi
 
 
 DEFAULT_CORNERS = dict(x0=1.1e5, y0=6.55e6, x1=6.5e5, y1=7e6)
@@ -39,4 +40,15 @@ def crop_rasters(rasters, x0=DEFAULT_CORNERS['x0'], y0=DEFAULT_CORNERS['y0'],
         cropped, transform = crop_raster(raster, x0, y0, x1, y1)
         crops.append(cropped)
     return pd.Series(index=rasters.index, data=crops), transform
+
+
+def write_rr_geotiff(rr, meta, savepath):
+    with rasterio.open(savepath, 'w', **meta) as dest:
+        dest.write_band(1, fmi.rr2raw(rr, dtype=meta['dtype']))
+
+
+def plot_radar_file(radarfilepath, **kws):
+    with rasterio.open(radarfilepath) as radar_data:
+        return fmi.plot_radar_map(radar_data, **kws)
+
 

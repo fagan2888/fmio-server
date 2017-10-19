@@ -13,7 +13,7 @@ if running_py3():
 else:
     from urllib import urlretrieve
 from j24.server import GracefulKiller
-from fmio import basemap, fmi, FI_RR_FIG_FILEPATH
+from fmio import basemap, fmi, raster, FI_RR_FIG_FILEPATH
 if running_py3():
     import tempfile
 else:
@@ -27,7 +27,7 @@ def update_radar_figure(output_filepath, debug=False):
         urlretrieve(radurl, filename=radarfilepath)
         border = basemap.border()
         cities = basemap.cities()
-        ax = fmi.plot_radar_file(radarfilepath, border=border, cities=cities)
+        ax = raster.plot_radar_file(radarfilepath, border=border, cities=cities)
         fig = ax.get_figure()
         fig.savefig(output_filepath)
     print('Updated {}.'.format(output_filepath))

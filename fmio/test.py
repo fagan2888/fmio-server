@@ -74,14 +74,11 @@ rads.apply(lambda x: x.close())
 rr = fmi.raw2rr(crops)
 fcast = forecast.forecast(rr)
 for t, fc in fcast.iteritems():
-    fc_filled = fc.copy()
-    fc_filled[np.isnan(fc)] = 0
     savepath = path.join(savedir, t.strftime(fmi.FNAME_FORMAT))
-    with rasterio.open(savepath, 'w', **meta) as dest:
-        dest.write_band(1, fmi.rr2raw(fc_filled))
+    raster.write_rr_geotiff(fc, meta, savepath)
 #################################
     fname = t.strftime(fmi.FNAME_TIME_FORMAT) + '.png'
-    plot_save_rr(fc_filled, tr, border, rad_crs, fname)
+    plot_save_rr(fc, tr, border, rad_crs, fname)
 
 with rasterio.open(savepath) as savedraster:
     rate = fmi.raw2rr(savedraster.read(1))

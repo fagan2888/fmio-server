@@ -35,7 +35,9 @@ def raw2rr(raw):
 
 
 def rr2raw(rr, dtype='uint16'):
-    scaled = rr*RR_FACTOR
+    rr_filled = rr.copy()
+    rr_filled[np.isnan(rr)] = 0
+    scaled = rr_filled*RR_FACTOR
     return scaled.round().astype(dtype)
 
 
@@ -138,9 +140,4 @@ def plot_radar_map(radar_data, border=None, cities=None, ax=None, crop='fi'):
         ax.set_xlim(left=-5e4)
         ax.set_ylim(top=7.8e6, bottom=6.42e6)
     return ax
-
-
-def plot_radar_file(radarfilepath, **kws):
-    with rasterio.open(radarfilepath) as radar_data:
-        return plot_radar_map(radar_data, **kws)
 
