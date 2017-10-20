@@ -4,17 +4,15 @@ __metaclass__ = type
 
 from j24 import running_py3
 
-import numpy as np
 import pandas as pd
 if running_py3():
-    from urllib.parse import urlencode, urlretrieve
+    from urllib.parse import urlretrieve
 else:
-    from urllib import urlencode, urlretrieve
+    from urllib import urlretrieve
 from lxml import etree
 from owslib.wfs import WebFeatureService
 from os import path, environ
 from fmio import USER_DIR, DATA_DIR
-import datetime
 import pytz
 
 
@@ -29,16 +27,6 @@ def read_key(keyfilepath=KEY_FILE_PATH):
         return environ['FMI_API_KEY']
     with open(keyfilepath, 'r') as keyfile:
         return keyfile.readline().splitlines()[0]
-
-
-def to_datetime(ttime):
-    dtime = datetime.datetime.fromtimestamp(ttime)
-    return dtime
-
-
-def to_time(dtime):
-    ttime = (dtime - datetime.datetime(1970, 1, 1, tzinfo=pytz.utc)).total_seconds()
-    return ttime
 
 
 def gen_url(timestamp=None):
