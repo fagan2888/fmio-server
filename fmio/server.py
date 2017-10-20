@@ -16,8 +16,9 @@ from fmio import fmi
 from fmio import raster
 import datetime
 import pytz
+import os
 
-print("Starting up server.")
+print("Starting up server.", os.environ['WERKZEUG_RUN_MAIN'])
 
 miner = DataMiner(
     path.join(DATA_DIR, "tmp1"),
