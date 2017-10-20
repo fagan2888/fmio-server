@@ -32,7 +32,7 @@ class DataMiner(TimedTask):
 
     def update_maps(self):
         print("Checking if maps need updating.")
-        urls = fmi.available_maps().tail(2)  # type: NDFrame
+        urls = fmi.available_maps().tail(2)
         dates = map(lambda x: datetime.datetime.strptime(x, fmi.FNAME_FORMAT), self.current_temp().filenames())
         dates = map(lambda x: x.replace(tzinfo=pytz.UTC), dates)
         dates.sort()
@@ -43,45 +43,34 @@ class DataMiner(TimedTask):
                 print("No new maps, not updating.")
                 return
 
-        print("New maps found, updating.")
-
-        def get_file(t):
-            dtime, url = t
-            r = requests.get(url, stream=False)
-            r.raw.decode_content = True
-            return dtime, r
+        print("New maps found, generating forecasts.")
 
         def get_raw(url):
-            r = requests.get(url, stream=False)
+            r = requests.get(url, stream=True)
             r.raw.decode_content = True
             return r
 
         filess = urls.apply(get_raw)
-        rasters = filess.apply(rasterio.open)
-        crops, translate, meta = raster.crop_rasters(rasters, **raster.DEFAULT_CORNERS)
-        rasters.apply(lambda x: x.close())
-        rrs = fmi.raw2rr(crops)
+        A, B = filess.iloc[0], filess.iloc[1]
+        with rasterio.open(A.raw) as a, rasterio.open(B.raw) as b:
+            rasters = filess.copy()
+            rasters.iloc[0] = a
+            rasters.iloc[1] = b
+            crops, translate, meta = raster.crop_rasters(rasters, **raster.DEFAULT_CORNERS)
+        rrs = raster.raw2rr(crops)
         fcast = forecast.forecast(rrs)
+
+        print("Saving generated forecasts.")
+        self.download_temp().remove_all_files()
         for t, fc in fcast.iteritems():
             savepath = self.download_temp().path(t.strftime(fmi.FNAME_FORMAT))
             raster.write_rr_geotiff(fc, meta, savepath)
-
-        files = map(get_file, urls.iteritems())
-        self.download_temp().remove_all_files()
-        for t in files:
-            dtime, r = t
-            # DO EXTRAPOLATION HERE
-            # with rasterio.open(t[1].raw) as data:
-            #    print(data.read(1))
-            #with open(self.download_temp().path(dtime.strftime(fmi.FNAME_FORMAT)), mode="w+b") as f:
-            #    for chunk in r:
-            #        f.write(chunk)
-
         self.swap_temps()
+
         print("Successfully updated maps.")
 
     def timed_task(self):
-        try:
+        #try:
             self.update_maps()
-        except Exception as e:
-            print("Got an unexpected exception, ignoring:", e.message)
+        #except Exception as e:
+        #    print("Got an unexpected exception, ignoring:", e.message, e.args)
