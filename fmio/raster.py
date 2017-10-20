@@ -113,6 +113,7 @@ def rr2raw(rr, dtype='uint16'):
     scaled = rr_filled*RR_FACTOR
     return scaled.round().astype(dtype)
 
+
 def lonlat_to_xy(lon, lat):
     p1 = pyproj.Proj(init='epsg:4326')
     p2 = pyproj.Proj(init='epsg:3067')
@@ -121,6 +122,7 @@ def lonlat_to_xy(lon, lat):
         return xy
     except RuntimeError:
         return 0, 0
+
 
 def filename_to_datestring(filename):
     dtime = datetime.datetime.strptime(filename, fmi.FNAME_FORMAT).replace(tzinfo=pytz.UTC)
