@@ -4,7 +4,6 @@ __metaclass__ = type
 
 from j24 import running_py3
 
-import rasterio
 import numpy as np
 import pandas as pd
 if running_py3():
@@ -15,30 +14,15 @@ from lxml import etree
 from owslib.wfs import WebFeatureService
 from rasterio.plot import show
 from os import path, environ
-from fmio import USER_DIR, DATA_DIR
+from fmio import raster, USER_DIR, DATA_DIR
 import datetime
-import time
 import pytz
 
 
-DBZ_NODATA = 255
-RR_NODATA = 65535
-RR_FACTOR = 100
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 FNAME_TIME_FORMAT = '%Y%m%d_%H%M'
 FNAME_FORMAT = FNAME_TIME_FORMAT + '.tif'
 KEY_FILE_PATH = path.join(USER_DIR, 'api.key')
-
-
-def raw2rr(raw):
-    return raw/RR_FACTOR
-
-
-def rr2raw(rr, dtype='uint16'):
-    rr_filled = rr.copy()
-    rr_filled[np.isnan(rr)] = 0
-    scaled = rr_filled*RR_FACTOR
-    return scaled.round().astype(dtype)
 
 
 def read_key(keyfilepath=KEY_FILE_PATH):
@@ -115,8 +99,8 @@ def download_maps(urls):
 
 def plot_radar_map(radar_data, border=None, cities=None, ax=None, crop='fi'):
     dat = radar_data.read(1)
-    mask = dat==RR_NODATA
-    d = dat.copy()*0.01
+    mask = dat==raster.RR_NODATA
+    d = raster.raw2rr(dat.copy())
     d[mask] = 0
     datm = np.ma.MaskedArray(data=d, mask=d==0)
     nummask = np.ma.MaskedArray(data=dat, mask=~mask)

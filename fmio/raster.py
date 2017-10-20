@@ -8,6 +8,9 @@ import rasterio
 from fmio import fmi
 
 
+DBZ_NODATA = 255
+RR_NODATA = 65535
+RR_FACTOR = 100
 DEFAULT_CORNERS = dict(x0=1.1e5, y0=6.55e6, x1=6.5e5, y1=7e6)
 
 
@@ -38,6 +41,17 @@ def crop_raster(raster, x0=DEFAULT_CORNERS['x0'], y0=DEFAULT_CORNERS['y0'],
     return cropped, transform, meta
 
 
+def value_at_coords(raster, x, y, band=1):
+    """value at raster native coordinate system"""
+    gen = raster.sample(xy=[(x, y)], indexes=band)
+    return gen.next()[0]
+
+
+def rr_at_coords(*args, **kws):
+    """rainrate at raster native coordinate system"""
+    return raw2rr(value_at_coords(*args, **kws))
+
+
 def crop_rasters(rasters, x0=DEFAULT_CORNERS['x0'], y0=DEFAULT_CORNERS['y0'],
                  x1=DEFAULT_CORNERS['x1'], y1=DEFAULT_CORNERS['y1']):
     crops = []
@@ -52,8 +66,47 @@ def write_rr_geotiff(rr, meta, savepath):
         dest.write_band(1, fmi.rr2raw(rr, dtype=meta['dtype']))
 
 
+def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi'):
+    dat = raster.read(1)
+    mask = dat==RR_NODATA
+    d = raw2rr(dat.copy())
+    d[mask] = 0
+    datm = np.ma.MaskedArray(data=d, mask=d==0)
+    nummask = np.ma.MaskedArray(data=dat, mask=~mask)
+    ax = rasterio.plot.show(datm, transform=raster.transform, ax=ax, zorder=3)
+    rasterio.plot.show(nummask, transform=raster.transform, ax=ax,
+                       zorder=4, alpha=.1, interpolation='bilinear')
+    if border is not None:
+        border.to_crs(raster.read_crs().data).plot(zorder=0, color='gray',
+                                                       ax=ax)
+    if cities is not None:
+        cities.to_crs(raster.read_crs().data).plot(zorder=5, color='black',
+                                                       ax=ax, markersize=2)
+    ax.axis('off')
+    if crop=='fi':
+        ax.set_xlim(left=1e4, right=7.8e5)
+        ax.set_ylim(top=7.8e6, bottom=6.45e6)
+    elif crop=='metrop': # metropolitean area TODO
+        ax.set_xlim(left=1e4, right=7.8e5)
+        ax.set_ylim(top=7.8e6, bottom=6.45e6)
+    else:
+        ax.set_xlim(left=-5e4)
+        ax.set_ylim(top=7.8e6, bottom=6.42e6)
+    return ax
+
+
 def plot_radar_file(radarfilepath, **kws):
     with rasterio.open(radarfilepath) as radar_data:
         return fmi.plot_radar_map(radar_data, **kws)
 
+
+def raw2rr(raw):
+    return raw/RR_FACTOR
+
+
+def rr2raw(rr, dtype='uint16'):
+    rr_filled = rr.copy()
+    rr_filled[np.isnan(rr)] = 0
+    scaled = rr_filled*RR_FACTOR
+    return scaled.round().astype(dtype)
 
