@@ -4,9 +4,6 @@ __metaclass__ = type
 
 import threading
 import requests
-import datetime
-import pytz
-import pandas
 import rasterio
 from fmio import fmi, raster, forecast
 from fmio.storage import Storage
@@ -19,6 +16,7 @@ class DataMiner(TimedTask):
         self.temps = [Storage(tempdir1), Storage(tempdir2)]
         self.temp_swap_lock = threading.RLock()
         self.tempidx = 0
+        self.previous_dates = []
 
     def swap_temps(self):
         with self.temp_swap_lock:
@@ -33,15 +31,13 @@ class DataMiner(TimedTask):
     def update_maps(self):
         print("Checking if maps need updating.")
         urls = fmi.available_maps().tail(2)
-        dates = map(lambda x: datetime.datetime.strptime(x, fmi.FNAME_FORMAT), self.current_temp().filenames())
-        dates = map(lambda x: x.replace(tzinfo=pytz.UTC), dates)
-        dates.sort()
-        for d in dates[-1:]:
-            d = pandas.Timestamp(d)
-            print(d, urls.tail(1).keys()[0])
-            if d >= urls.tail(1).keys()[0]:
-                print("No new maps, not updating.")
-                return
+        current_dates = urls.index
+        print("Previous dates:", self.previous_dates)
+        print("Current dates:", current_dates)
+        if len(current_dates) == len(self.previous_dates) and all(current_dates == self.previous_dates):
+            print("No new maps, not updating.")
+            return
+        self.previous_dates = current_dates
 
         print("New maps found, generating forecasts.")
 
@@ -73,4 +69,4 @@ class DataMiner(TimedTask):
         try:
             self.update_maps()
         except Exception as e:
-            print("Got an unexpected exception, ignoring:", e.message, e.args)
+            print("Got an unexpected exception, ignoring:", e.message)
