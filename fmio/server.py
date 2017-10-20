@@ -13,6 +13,7 @@ from flask import Flask, send_from_directory, send_file, url_for
 from fmio.dataminer import DataMiner
 from fmio import DATA_DIR, FI_RR_FIG_FILEPATH
 from fmio import fmi
+from fmio import raster
 import datetime
 import pytz
 
@@ -39,22 +40,16 @@ def site_map():
 
 @app.route("/forecast/<lon>/<lat>")
 def forecast(lon, lat):
-    p1 = pyproj.Proj(init='epsg:4326')
-    p2 = pyproj.Proj(init='epsg:3067')
-    xy = pyproj.transform(p1, p2, lon, lat)
-    ret = []
+    x, y = raster.lonlat_to_xy(lon, lat)
+    forecasts = []
     with miner.temp_swap_lock:
         temp = miner.current_temp()
-        print("Filenames:", temp.filenames())
         for filename in temp.filenames():
-            if filename.endswith(".tif"):
-                with rasterio.open(temp.path(filename)) as data:
-                    value = list(data.sample([xy]))[0][0]
-                    dtime = datetime.datetime.strptime(filename, fmi.FNAME_FORMAT).replace(tzinfo=pytz.UTC)
-                    # if dtime > datetime.datetime.utcnow(): # Only show forecasts newer than "now"
-                    stime = dtime.strftime(fmi.TIME_FORMAT)
-                    ret.append({"time": stime, "rain_intensity": float(value), "rain_intensity_mm_h": float(value)*0.01})
-    return json.dumps({"time_format": fmi.TIME_FORMAT, "timezone": str(pytz.UTC), "forecasts": ret})
+            with rasterio.open(temp.path(filename)) as data:
+                mm_h = raster.rr_at_coords(data, x, y)
+                timestamp = raster.filename_to_datestring(filename)
+                forecasts.append({"time": timestamp, "rain_intensity": mm_h})
+    return json.dumps({"time_format": fmi.TIME_FORMAT, "timezone": str(pytz.UTC), "forecasts": forecasts})
 
 
 @app.route("/rainmap")

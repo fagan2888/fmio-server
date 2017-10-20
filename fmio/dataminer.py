@@ -70,7 +70,7 @@ class DataMiner(TimedTask):
         print("Successfully updated maps.")
 
     def timed_task(self):
-        #try:
+        try:
             self.update_maps()
-        #except Exception as e:
-        #    print("Got an unexpected exception, ignoring:", e.message, e.args)
+        except Exception as e:
+            print("Got an unexpected exception, ignoring:", e.message, e.args)
