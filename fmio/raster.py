@@ -4,11 +4,12 @@ __metaclass__ = type
 
 import numpy as np
 import pandas as pd
-import rasterio
 import pyproj
-from fmio import fmi
 import datetime
 import pytz
+import rasterio
+from rasterio.plot import show
+from fmio import fmi
 
 DBZ_NODATA = 255
 RR_NODATA = 65535
@@ -25,7 +26,7 @@ def mask_rr(rr):
 def plot_rr(rr, cmap='jet', vmin=0.05, vmax=10, **kws):
     """Plot rainrate raster."""
     rr_masked = mask_rr(rr)
-    return rasterio.plot.show(rr_masked, cmap=cmap, vmin=vmin, vmax=vmax, **kws)
+    return show(rr_masked, cmap=cmap, vmin=vmin, vmax=vmax, **kws)
 
 
 def crop_raster(raster, x0=DEFAULT_CORNERS['x0'], y0=DEFAULT_CORNERS['y0'],
@@ -75,8 +76,8 @@ def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi'):
     d[mask] = 0
     datm = np.ma.MaskedArray(data=d, mask=d==0)
     nummask = np.ma.MaskedArray(data=dat, mask=~mask)
-    ax = rasterio.plot.show(datm, transform=raster.transform, ax=ax, zorder=3)
-    rasterio.plot.show(nummask, transform=raster.transform, ax=ax,
+    ax = show(datm, transform=raster.transform, ax=ax, zorder=3)
+    show(nummask, transform=raster.transform, ax=ax,
                        zorder=4, alpha=.1, interpolation='bilinear')
     if border is not None:
         border.to_crs(raster.read_crs().data).plot(zorder=0, color='gray',

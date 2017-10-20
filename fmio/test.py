@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 __metaclass__ = type
 
 import rasterio
+from rasterio.plot import show
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,11 +14,11 @@ from j24 import home, ensure_join
 plt.close('all')
 
 
-def plot_save_rr(rr, transform, border, rr_crs, fname):
+def plot_save_rr(rr, transform, border, rr_crs, savepath):
     ax = border.to_crs(rr_crs).plot(zorder=0)
     raster.plot_rr(rr, transform=transform, ax=ax, zorder=10)
     ax.set_axis_off()
-    ax.get_figure().savefig(path.join(savedir, fname), bbox_inches='tight')
+    ax.get_figure().savefig(savepath, bbox_inches='tight')
     return ax
 
 
@@ -66,18 +67,24 @@ crops, tr, meta = raster.crop_rasters(rads, **raster.DEFAULT_CORNERS)
 dtype = meta['dtype']
 rad_crs = rads.iloc[0].read_crs().data
 rads.apply(lambda x: x.close())
-rr = fmi.raw2rr(crops)
+rr = raster.raw2rr(crops)
 fcast = forecast.forecast(rr)
+savepaths = fcast.copy()
+pngpaths = fcast.copy()
 for t, fc in fcast.iteritems():
     savepath = path.join(savedir, t.strftime(fmi.FNAME_FORMAT))
+    savepaths.loc[t] = savepath
     raster.write_rr_geotiff(fc, meta, savepath)
 #################################
     fname = t.strftime(fmi.FNAME_TIME_FORMAT) + '.png'
-    plot_save_rr(fc, tr, border, rad_crs, fname)
+    pngpath = path.join(savedir, 'png', fname)
+    pngpaths[t] = pngpath
+    plot_save_rr(fc, tr, border, rad_crs, pngpath)
+    plt.close()
 
-with rasterio.open(savepath) as savedraster:
-    rate = fmi.raw2rr(savedraster.read(1))
-    plot_save_rr(rate, tr, border, rad_crs, 'test.png')
+with rasterio.open(savepath, 'r') as savedraster:
+    rate = raster.raw2rr(savedraster.read(1))
+    ax = plot_save_rr(rate, tr, border, rad_crs, path.join(savedir, 'test.png'))
     plt.close()
 
 #v = forecast.motion(rru[0], rru[1])
