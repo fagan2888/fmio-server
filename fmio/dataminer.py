@@ -61,10 +61,14 @@ class DataMiner(TimedTask):
         fcast = forecast.forecast(rrs)
 
         print("Saving generated forecasts.")
+        pngpaths = fcast.copy()
         self.download_temp().remove_all_files()
         for t, fc in fcast.iteritems():
             savepath = self.download_temp().path(t.strftime(fmi.FNAME_FORMAT))
             raster.write_rr_geotiff(fc, meta, savepath)
+            pngname = t.strftime(fmi.FNAME_TIME_FORMAT) + '.png'
+            #pngpath = path.join(savedir, 'png', pngname)
+            #pngpaths[t] = 
         self.swap_temps()
 
         print("Successfully updated maps.")

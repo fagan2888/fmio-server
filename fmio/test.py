@@ -9,17 +9,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from os import path
 from fmio import fmi, basemap, forecast, raster
+from fmio import visualization as vis
 from j24 import home, ensure_join
 
 plt.close('all')
-
-
-def plot_save_rr(rr, transform, border, rr_crs, savepath):
-    ax = border.to_crs(rr_crs).plot(zorder=0)
-    raster.plot_rr(rr, transform=transform, ax=ax, zorder=10)
-    ax.set_axis_off()
-    ax.get_figure().savefig(savepath, bbox_inches='tight')
-    return ax
 
 
 def crop_and_plot(f):
@@ -79,12 +72,12 @@ for t, fc in fcast.iteritems():
     fname = t.strftime(fmi.FNAME_TIME_FORMAT) + '.png'
     pngpath = path.join(savedir, 'png', fname)
     pngpaths[t] = pngpath
-    plot_save_rr(fc, tr, border, rad_crs, pngpath)
+    vis.plot_save_rr(fc, tr, border, rad_crs, pngpath)
     plt.close()
 
 with rasterio.open(savepath, 'r') as savedraster:
     rate = raster.raw2rr(savedraster.read(1))
-    ax = plot_save_rr(rate, tr, border, rad_crs, path.join(savedir, 'test.png'))
+    ax = vis.plot_save_rr(rate, tr, border, rad_crs, path.join(savedir, 'test.png'))
     plt.close()
 
 gifpath = path.join(savedir, 'forecast.gif')
