@@ -12,9 +12,8 @@ else:
     from urllib import urlencode, urlretrieve
 from lxml import etree
 from owslib.wfs import WebFeatureService
-from rasterio.plot import show
 from os import path, environ
-from fmio import raster, USER_DIR, DATA_DIR
+from fmio import USER_DIR, DATA_DIR
 import datetime
 import pytz
 
@@ -96,32 +95,4 @@ def download_maps(urls):
         save_paths.loc[t] = filepath
     return save_paths
 
-
-def plot_radar_map(radar_data, border=None, cities=None, ax=None, crop='fi'):
-    dat = radar_data.read(1)
-    mask = dat==raster.RR_NODATA
-    d = raster.raw2rr(dat.copy())
-    d[mask] = 0
-    datm = np.ma.MaskedArray(data=d, mask=d==0)
-    nummask = np.ma.MaskedArray(data=dat, mask=~mask)
-    ax = show(datm, transform=radar_data.transform, ax=ax, zorder=3)
-    show(nummask, transform=radar_data.transform, ax=ax, zorder=4, alpha=.1,
-         interpolation='bilinear')
-    if border is not None:
-        border.to_crs(radar_data.read_crs().data).plot(zorder=0, color='gray',
-                                                       ax=ax)
-    if cities is not None:
-        cities.to_crs(radar_data.read_crs().data).plot(zorder=5, color='black',
-                                                       ax=ax, markersize=2)
-    ax.axis('off')
-    if crop=='fi':
-        ax.set_xlim(left=1e4, right=7.8e5)
-        ax.set_ylim(top=7.8e6, bottom=6.45e6)
-    elif crop=='metrop': # metropolitean area TODO
-        ax.set_xlim(left=1e4, right=7.8e5)
-        ax.set_ylim(top=7.8e6, bottom=6.45e6)
-    else:
-        ax.set_xlim(left=-5e4)
-        ax.set_ylim(top=7.8e6, bottom=6.42e6)
-    return ax
 
