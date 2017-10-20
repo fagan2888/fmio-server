@@ -4,6 +4,7 @@ __metaclass__ = type
 
 import threading
 from os import path, remove, listdir, makedirs
+import errno
 
 
 class Storage:
@@ -11,8 +12,11 @@ class Storage:
         self.tempdir = tempdir
         self.lock = threading.RLock()
         with self.lock:
-            if not path.exists(self.tempdir):
+            try:
                 makedirs(self.tempdir)
+            except OSError as exception:
+                if exception.errno != errno.EEXIST:
+                    raise
             self.remove_all_files()
 
     def remove_all_files(self):

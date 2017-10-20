@@ -16,6 +16,8 @@ from fmio import fmi
 import datetime
 import pytz
 
+print("Starting up server.")
+
 miner = DataMiner(
     path.join(DATA_DIR, "tmp1"),
     path.join(DATA_DIR, "tmp2"),

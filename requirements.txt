@@ -3,6 +3,7 @@ numpy
 matplotlib
 rasterio>=1.0a9
 geopandas
+pandas
 Flask
 gunicorn
 https://github.com/juhi24/j24py/tarball/master

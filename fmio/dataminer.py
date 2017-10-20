@@ -8,7 +8,6 @@ import datetime
 import pytz
 import pandas
 import rasterio
-from os import path
 from fmio import fmi, raster, forecast
 from fmio.storage import Storage
 from fmio.timer import TimedTask
