@@ -115,8 +115,11 @@ def rr2raw(rr, dtype='uint16'):
 def lonlat_to_xy(lon, lat):
     p1 = pyproj.Proj(init='epsg:4326')
     p2 = pyproj.Proj(init='epsg:3067')
-    xy = pyproj.transform(p1, p2, lon, lat)
-    return xy
+    try:
+        xy = pyproj.transform(p1, p2, lon, lat)
+        return xy
+    except RuntimeError:
+        return 0, 0
 
 def filename_to_datestring(filename):
     dtime = datetime.datetime.strptime(filename, fmi.FNAME_FORMAT).replace(tzinfo=pytz.UTC)
