@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 __metaclass__ = type
 
 import rasterio
-from rasterio.plot import show
+import imageio
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -86,6 +86,11 @@ with rasterio.open(savepath, 'r') as savedraster:
     rate = raster.raw2rr(savedraster.read(1))
     ax = plot_save_rr(rate, tr, border, rad_crs, path.join(savedir, 'test.png'))
     plt.close()
+
+gifpath = path.join(savedir, 'forecast.gif')
+ims = pngpaths.apply(imageio.imread)
+imageio.mimsave(gifpath, ims, duration=0.2)
+
 
 #v = forecast.motion(rru[0], rru[1])
 #out = forecast.forecast()
