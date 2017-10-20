@@ -4,9 +4,8 @@ __metaclass__ = type
 
 import cStringIO
 import json
-from os import path
+from os import path, environ
 
-import pyproj
 import rasterio
 from flask import Flask, send_from_directory, send_file, url_for
 
@@ -16,17 +15,41 @@ from fmio import fmi
 from fmio import raster
 import datetime
 import pytz
+import time
 
 print("Starting up server.")
+
+example = 'FMI_EXAMPLE' in environ
+if example:
+    print("Running in example mode")
 
 miner = DataMiner(
     path.join(DATA_DIR, "tmp1"),
     path.join(DATA_DIR, "tmp2"),
     interval_mins=1
 )
-miner.start()
+if not example:
+    miner.start()
 
 app = Flask(__name__)
+
+
+def generate_example_data():
+    forecasts = []
+    interval = 1
+    ttime = time.time()
+    timestamp = datetime.datetime.utcnow()
+    timestamp = timestamp.replace(minute=(timestamp.minute // interval) * interval, second=0)
+    rates = [0.1,0.0,0.0,0.0,0.0,0.1,
+             0.2,0.4,0.6,0.6,0.6,0.4,0.2]
+    for i in range(13):
+        mm_h = rates[int((i+ttime//(60*interval)) % len(rates))]
+        dtime = timestamp + datetime.timedelta(minutes=i*interval)
+        forecasts.append({
+            "time": dtime.strftime(fmi.TIME_FORMAT),
+            "rain_intensity": mm_h
+        })
+    return json.dumps({"time_format": fmi.TIME_FORMAT, "timezone": str(pytz.UTC), "forecasts": forecasts})
 
 
 @app.route("/")
@@ -40,6 +63,8 @@ def site_map():
 
 @app.route("/forecast/<lon>/<lat>")
 def forecast(lon, lat):
+    if example:
+        return generate_example_data()
     x, y = raster.lonlat_to_xy(lon, lat)
     forecasts = []
     with miner.temp_swap_lock:
@@ -51,6 +76,10 @@ def forecast(lon, lat):
                 forecasts.append({"time": timestamp, "rain_intensity": mm_h})
     return json.dumps({"time_format": fmi.TIME_FORMAT, "timezone": str(pytz.UTC), "forecasts": forecasts})
 
+
+@app.route("/example")
+def example():
+    return generate_example_data()
 
 @app.route("/rainmap")
 def rainmap():
