@@ -19,8 +19,8 @@ import time
 
 print("Starting up server.")
 
-example = 'FMI_EXAMPLE' in environ
-if example:
+example_mode = 'FMI_EXAMPLE' in environ
+if example_mode:
     print("Running in example mode")
 
 miner = DataMiner(
@@ -28,7 +28,7 @@ miner = DataMiner(
     path.join(DATA_DIR, "tmp2"),
     interval_mins=1
 )
-if not example:
+if not example_mode:
     miner.start()
 
 app = Flask(__name__)
@@ -68,7 +68,7 @@ def site_map():
 
 @app.route("/forecast/<lon>/<lat>")
 def forecast(lon, lat):
-    if example:
+    if example_mode:
         return generate_example_data()
     x, y = raster.lonlat_to_xy(lon, lat)
     forecasts = []
