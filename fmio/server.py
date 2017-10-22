@@ -49,7 +49,12 @@ def generate_example_data():
             "time": dtime.strftime(fmi.TIME_FORMAT),
             "rain_intensity": mm_h
         })
-    return json.dumps({"time_format": fmi.TIME_FORMAT, "timezone": str(pytz.UTC), "forecasts": forecasts})
+    return json.dumps({
+        "time_format": fmi.TIME_FORMAT,
+        "timezone": str(pytz.UTC),
+        "forecasts": forecasts,
+        "accumulation": raster.accumulation(map(lambda x: x['rain_intensity'], forecasts), 1),
+    })
 
 
 @app.route("/")
@@ -74,7 +79,12 @@ def forecast(lon, lat):
                 mm_h = raster.rr_at_coords(data, x, y)
                 timestamp = raster.filename_to_datestring(filename)
                 forecasts.append({"time": timestamp, "rain_intensity": mm_h})
-    return json.dumps({"time_format": fmi.TIME_FORMAT, "timezone": str(pytz.UTC), "forecasts": forecasts})
+    return json.dumps({
+        "time_format": fmi.TIME_FORMAT,
+        "timezone": str(pytz.UTC),
+        "forecasts": forecasts,
+        "accumulation": raster.accumulation(map(lambda x: x['rain_intensity'], forecasts)),
+    })
 
 
 @app.route("/example")

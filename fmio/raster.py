@@ -128,3 +128,7 @@ def filename_to_datestring(filename):
     dtime = datetime.datetime.strptime(filename, fmi.FNAME_FORMAT).replace(tzinfo=pytz.UTC)
     stime = dtime.strftime(fmi.TIME_FORMAT)
     return stime
+
+
+def accumulation(intensities, forecast_interval_mins=5):
+    return sum(map(lambda mm_h: forecast_interval_mins*(mm_h/60), intensities))
