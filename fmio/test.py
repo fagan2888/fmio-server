@@ -34,6 +34,17 @@ def plot_files(paths, **kws):
         plt.figure()
         fmi.plot_radar_file(p, **kws)
 
+def rr_series_at_coords(raster_paths, x=3.5e5, y=6.65e6):
+    rvals = raster_paths.copy()
+    for t, rp in raster_paths.iteritems():
+        with rasterio.open(rp, 'r') as ras:
+            rvals[t] = raster.rr_at_coords(ras, x, y)
+
+def plot_rr_series(rrs, **kws):
+    ax = rrs.plot(**kws)
+    ax.set_ylabel('Intensity mm/h')
+    return ax
+
 
 t_range = dict(starttime='2017-10-12T07:00:00Z', endtime='2017-10-12T08:30:00Z')
 
@@ -80,9 +91,11 @@ with rasterio.open(savepath, 'r') as savedraster:
     ax = vis.plot_save_rr(rate, tr, border, rad_crs, path.join(savedir, 'test.png'))
     plt.close()
 
+
+
+
 gifpath = path.join(savedir, 'forecast.gif')
-ims = pngpaths.apply(imageio.imread)
-imageio.mimsave(gifpath, ims, duration=0.2)
+#vis.pngs2gif(pngpaths, gifpath)
 
 
 #v = forecast.motion(rru[0], rru[1])

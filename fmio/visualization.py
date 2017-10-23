@@ -6,10 +6,10 @@ import imageio
 from fmio import raster
 
 
-def pngs2gif(png_paths, gif_path):
+def pngs2gif(png_paths, gif_path, duration=0.2):
     """png_paths: Series"""
     ims = png_paths.apply(imageio.imread)
-    imageio.mimsave(gif_path, ims, duration=0.2)
+    imageio.mimsave(gif_path, ims, duration=duration)
 
 
 def plot_save_rr(rr, transform, border, rr_crs, savepath):
