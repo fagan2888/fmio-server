@@ -11,10 +11,11 @@ from fmio.timer import TimedTask
 
 
 class DataMiner(TimedTask):
-    def __init__(self, tempdir1, tempdir2, interval_mins=5):
+    def __init__(self, tempdir1, tempdir2, image_temp, interval_mins=5):
         TimedTask.__init__(self, interval_mins=interval_mins)
         self.temps = [Storage(tempdir1), Storage(tempdir2)]
         self.temp_swap_lock = threading.RLock()
+        self.visualization_storage = Storage(image_temp)
         self.tempidx = 0
         self.previous_dates = []
 
@@ -59,6 +60,7 @@ class DataMiner(TimedTask):
         print("Saving generated forecasts.")
         pngpaths = fcast.copy()
         self.download_temp().remove_all_files()
+        gif_path = self.visualization_storage.path('forecast.gif')
         for t, fc in fcast.iteritems():
             savepath = self.download_temp().path(t.strftime(fmi.FNAME_FORMAT))
             raster.write_rr_geotiff(fc, meta, savepath)
