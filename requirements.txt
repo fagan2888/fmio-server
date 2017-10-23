@@ -1,6 +1,7 @@
 # fmio
+
 numpy
-matplotlib
+matplotlib==2.0
 rasterio>=1.0a9
 geopandas
 pandas
