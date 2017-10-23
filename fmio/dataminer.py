@@ -6,6 +6,7 @@ import threading
 import requests
 import rasterio
 from fmio import fmi, raster, forecast
+import fmi.visualization as vis
 from fmio.storage import Storage
 from fmio.timer import TimedTask
 
@@ -58,15 +59,17 @@ class DataMiner(TimedTask):
         fcast = forecast.forecast(rrs)
 
         print("Saving generated forecasts.")
-        pngpaths = fcast.copy()
+        png_paths = fcast.copy()
         self.download_temp().remove_all_files()
-        gif_path = self.visualization_storage.path('forecast.gif')
+        imstore = self.visualization_storage
+        gif_path = imstore.path('forecast.gif')
         for t, fc in fcast.iteritems():
             savepath = self.download_temp().path(t.strftime(fmi.FNAME_FORMAT))
             raster.write_rr_geotiff(fc, meta, savepath)
-            pngname = t.strftime(fmi.FNAME_TIME_FORMAT) + '.png'
-            #pngpath = path.join(savedir, 'png', pngname)
-            #pngpaths[t] = 
+            png_name = t.strftime(fmi.FNAME_TIME_FORMAT) + '.png'
+            png_path = imstore.path(png_name)
+            png_paths[t] = png_path
+        vis.pngs2gif(png_paths, gif_path)
         self.swap_temps()
 
         print("Successfully updated maps.")
