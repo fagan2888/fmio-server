@@ -6,17 +6,19 @@ import threading
 import requests
 import rasterio
 from fmio import fmi, raster, forecast
-import fmi.visualization as vis
+import fmio.visualization as vis
 from fmio.storage import Storage
 from fmio.timer import TimedTask
 
 
 class DataMiner(TimedTask):
-    def __init__(self, tempdir1, tempdir2, image_temp, interval_mins=5):
+    def __init__(self, tempdir1, tempdir2, image_temp1, image_temp2, interval_mins=5):
         TimedTask.__init__(self, interval_mins=interval_mins)
         self.temps = [Storage(tempdir1), Storage(tempdir2)]
         self.temp_swap_lock = threading.RLock()
-        self.visualization_storage = Storage(image_temp)
+        self.gif_swap_lock = threading.RLock()
+        self.png_storage = Storage(image_temp1)
+        self.gif_storage = Storage(image_temp2)
         self.tempidx = 0
         self.previous_dates = []
 
@@ -61,21 +63,23 @@ class DataMiner(TimedTask):
         print("Saving generated forecasts.")
         png_paths = fcast.copy()
         self.download_temp().remove_all_files()
-        imstore = self.visualization_storage
-        gif_path = imstore.path('forecast.gif')
+        self.png_storage.remove_all_files()
         for t, fc in fcast.iteritems():
             savepath = self.download_temp().path(t.strftime(fmi.FNAME_FORMAT))
             raster.write_rr_geotiff(fc, meta, savepath)
             png_name = t.strftime(fmi.FNAME_TIME_FORMAT) + '.png'
-            png_path = imstore.path(png_name)
+            png_path = self.png_storage.path(png_name)
+            vis.tif_to_png(savepath, png_path, crop='metrop')
             png_paths[t] = png_path
-        vis.pngs2gif(png_paths, gif_path)
+        with self.gif_swap_lock:
+            self.gif_storage.remove_all_files()
+            vis.pngs2gif(png_paths, self.gif_storage.path('forecast.gif'))
         self.swap_temps()
 
         print("Successfully updated maps.")
 
     def timed_task(self):
-        try:
+        #try:
             self.update_maps()
-        except Exception as e:
-            print("Got an unexpected exception, ignoring:", e.message)
+        #except Exception as e:
+        #    print("Got an unexpected exception, ignoring:", e.message)

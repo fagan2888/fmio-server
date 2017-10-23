@@ -26,6 +26,8 @@ if example_mode:
 miner = DataMiner(
     path.join(DATA_DIR, "tmp1"),
     path.join(DATA_DIR, "tmp2"),
+    path.join(DATA_DIR, "tmp3"),
+    path.join(DATA_DIR, "tmp4"),
     interval_mins=1
 )
 if not example_mode:
@@ -40,9 +42,9 @@ def generate_example_data():
     ttime = time.time()
     timestamp = datetime.datetime.utcnow()
     timestamp = timestamp.replace(minute=(timestamp.minute // interval) * interval, second=0)
-    rates = [0.1,0.0,0.0,0.0,0.0,0.1,
+    rates = [0.1,0.0,0.0,0.0,0.2,0.1,
              0.2,0.4,0.6,0.6,0.6,0.4,0.2]
-    for i in range(13):
+    for i in range(len(rates)):
         mm_h = rates[int((i+ttime//(60*interval)) % len(rates))]
         dtime = timestamp + datetime.timedelta(minutes=i*interval)
         forecasts.append({
@@ -83,35 +85,16 @@ def forecast(lon, lat):
         "time_format": fmi.TIME_FORMAT,
         "timezone": str(pytz.UTC),
         "forecasts": forecasts,
-        "accumulation": raster.accumulation(map(lambda x: x['rain_intensity'], forecasts)),
+        "accumulation": raster.accumulation(map(lambda x: x['rain_intensity'], forecasts), 5),
     })
 
 
-@app.route("/example")
-def example():
-    return generate_example_data()
-
-
-@app.route("/rainmap.png")
 @app.route("/rainmap")
-def png():
-    return send_from_directory(DATA_DIR, "test.png")
-
-
 @app.route("/rainmap.gif")
 def gif():
-    return send_from_directory(DATA_DIR, "test.gif")
-
-
-"""
-@app.route("/rainmap")
-def rainmap():
-    with miner.temp_swap_lock:
-        temp = miner.current_temp()
-        for filename in temp.filenames():
-            if filename.endswith(".png"):
-                # return send_from_directory(miner.tempdir, miner.filenames()[0])
-                with open(temp.path(filename)) as f:
-                    return send_file(cStringIO.StringIO(f.read()), mimetype="image/png")
-    return "No rainmaps stored"
-"""
+    if example_mode:
+        return send_from_directory(DATA_DIR, "forecast.gif")
+    with miner.gif_swap_lock:
+        with open(miner.gif_storage.path("forecast.gif")) as f:
+            sent_gif = cStringIO.StringIO(f.read())
+    return send_file(sent_gif, mimetype="image/gif")

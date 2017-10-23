@@ -8,7 +8,7 @@ import pyproj
 import datetime
 import pytz
 import rasterio
-from rasterio.plot import show
+from rasterio.plot import show, get_plt
 from fmio import fmi
 
 DBZ_NODATA = 255
@@ -70,6 +70,8 @@ def write_rr_geotiff(rr, meta, savepath):
 
 
 def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi'):
+    if ax is None:
+        ax = get_plt().gca()
     dat = raster.read(1)
     mask = dat==RR_NODATA
     d = raw2rr(dat.copy())
@@ -90,8 +92,12 @@ def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi'):
         ax.set_xlim(left=1e4, right=7.8e5)
         ax.set_ylim(top=7.8e6, bottom=6.45e6)
     elif crop=='metrop': # metropolitean area TODO
-        ax.set_xlim(left=1e4, right=7.8e5)
-        ax.set_ylim(top=7.8e6, bottom=6.45e6)
+        left = DEFAULT_CORNERS['x0']
+        right = DEFAULT_CORNERS['x1']
+        top = DEFAULT_CORNERS['y1']
+        bottom = DEFAULT_CORNERS['y0']
+        ax.set_xlim(left=left, right=right)
+        ax.set_ylim(top=top, bottom=bottom)
     else:
         ax.set_xlim(left=-5e4)
         ax.set_ylim(top=7.8e6, bottom=6.42e6)
@@ -130,5 +136,5 @@ def filename_to_datestring(filename):
     return stime
 
 
-def accumulation(intensities, forecast_interval_mins=5):
+def accumulation(intensities, forecast_interval_mins):
     return sum(map(lambda mm_h: forecast_interval_mins*(mm_h/60), intensities))
