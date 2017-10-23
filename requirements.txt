@@ -12,5 +12,6 @@ pyproj
 lxml
 owslib
 requests
+imageio
 
 -r pyoptflow/requirements.txt

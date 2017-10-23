@@ -91,6 +91,19 @@ def forecast(lon, lat):
 def example():
     return generate_example_data()
 
+
+@app.route("/rainmap.png")
+@app.route("/rainmap")
+def png():
+    return send_from_directory(DATA_DIR, "test.png")
+
+
+@app.route("/rainmap.gif")
+def gif():
+    return send_from_directory(DATA_DIR, "test.gif")
+
+
+"""
 @app.route("/rainmap")
 def rainmap():
     with miner.temp_swap_lock:
@@ -101,8 +114,4 @@ def rainmap():
                 with open(temp.path(filename)) as f:
                     return send_file(cStringIO.StringIO(f.read()), mimetype="image/png")
     return "No rainmaps stored"
-
-
-@app.route("/png")
-def png():
-    return send_from_directory(FI_RR_FIG_FILEPATH.format(timestamp=''))
+"""
