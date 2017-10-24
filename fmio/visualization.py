@@ -22,10 +22,10 @@ def plot_save_rr(rr, transform, border, rr_crs, savepath):
     return ax
 
 
-def tif_to_png(inputpath, outputpath, **kwargs):
+def tif_to_png(inputpath, outputpath, bbox_inches='tight', pad_inches=0, **kwargs):
     border = basemap.border()
     cities = basemap.cities()
     ax = raster.plot_radar_file(inputpath, border=border, cities=cities, **kwargs)
     fig = ax.get_figure()
-    fig.savefig(outputpath)
+    fig.savefig(outputpath, bbox_inches=bbox_inches, pad_inches=pad_inches)
     fig.clf()
