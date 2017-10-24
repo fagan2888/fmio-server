@@ -28,3 +28,4 @@ def tif_to_png(inputpath, outputpath, **kwargs):
     ax = raster.plot_radar_file(inputpath, border=border, cities=cities, **kwargs)
     fig = ax.get_figure()
     fig.savefig(outputpath)
+    fig.clf()
