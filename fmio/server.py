@@ -98,3 +98,10 @@ def gif():
         with open(miner.gif_storage.path("forecast.gif")) as f:
             sent_gif = cStringIO.StringIO(f.read())
     return send_file(sent_gif, mimetype="image/gif")
+
+
+@app.after_request
+def add_header(response):
+    response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
+    response.headers['Cache-Control'] = 'public, max-age=0'
+    return response
