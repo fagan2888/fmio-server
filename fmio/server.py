@@ -2,6 +2,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 __metaclass__ = type
 
+import matplotlib
+matplotlib.use("agg") # avoid using tkinter
+
 import cStringIO
 import json
 from os import path, environ
@@ -89,9 +92,10 @@ def forecast(lon, lat):
     })
 
 
+@app.route("/rainmap/<rand>/")
 @app.route("/rainmap")
 @app.route("/rainmap.gif")
-def gif():
+def gif(**kwargs):
     if example_mode:
         return send_from_directory(DATA_DIR, "forecast.gif")
     with miner.gif_swap_lock:
