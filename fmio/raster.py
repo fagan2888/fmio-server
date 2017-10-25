@@ -137,4 +137,5 @@ def filename_to_datestring(filename):
 
 
 def accumulation(intensities, forecast_interval_mins):
+    """liquid water accumulation in mm"""
     return sum(map(lambda mm_h: forecast_interval_mins*(mm_h/60), intensities))
