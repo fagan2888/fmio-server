@@ -69,7 +69,8 @@ def write_rr_geotiff(rr, meta, savepath):
         dest.write_band(1, rr2raw(rr, dtype=meta['dtype']))
 
 
-def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi'):
+def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi',
+                   vmin=0.05, vmax=8, cmap='jet'):
     if ax is None:
         ax = get_plt().gca()
     dat = raster.read(1)
@@ -78,7 +79,8 @@ def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi'):
     d[mask] = 0
     datm = np.ma.MaskedArray(data=d, mask=d==0)
     nummask = np.ma.MaskedArray(data=dat, mask=~mask)
-    ax = show(datm, transform=raster.transform, ax=ax, zorder=3)
+    ax = show(datm, transform=raster.transform, ax=ax, vmin=vmin, vmax=vmax,
+              cmap=cmap, zorder=3)
     show(nummask, transform=raster.transform, ax=ax,
                        zorder=4, alpha=.1, interpolation='bilinear')
     if border is not None:
@@ -91,7 +93,7 @@ def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi'):
     if crop=='fi':
         ax.set_xlim(left=1e4, right=7.8e5)
         ax.set_ylim(top=7.8e6, bottom=6.45e6)
-    elif crop=='metrop': # metropolitean area TODO
+    elif crop=='metrop': # Southern Finland
         left = DEFAULT_CORNERS['x0']
         right = DEFAULT_CORNERS['x1']
         top = DEFAULT_CORNERS['y1']

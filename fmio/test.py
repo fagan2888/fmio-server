@@ -59,7 +59,7 @@ y1=7e6
 fakeindex = pd.DatetimeIndex(freq='5min', start=t_range['starttime'], end=t_range['endtime'])
 urls = pd.Series(index=fakeindex) # fake urls
 #url = fmi.gen_url(timestamp='2017-10-17T07:00:00Z')
-dl = urls.tail(2)
+dl = fmi.available_maps().tail(2)
 #fmi.download_maps(urls)
 paths = fmi.download_maps(dl)
 savedir = ensure_join(home(), 'results', 'sataako')

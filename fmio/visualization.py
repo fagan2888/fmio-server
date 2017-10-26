@@ -8,7 +8,7 @@ from fmio import raster
 from fmio import basemap
 
 
-def pngs2gif(png_paths, gif_path, duration=0.2):
+def pngs2gif(png_paths, gif_path, duration=0.4):
     """png_paths: Series"""
     ims = png_paths.apply(imageio.imread)
     imageio.mimsave(gif_path, ims, duration=duration)
@@ -27,5 +27,5 @@ def tif_to_png(inputpath, outputpath, bbox_inches='tight', pad_inches=0, **kwarg
     cities = basemap.cities()
     ax = raster.plot_radar_file(inputpath, border=border, cities=cities, **kwargs)
     fig = ax.get_figure()
-    fig.savefig(outputpath, bbox_inches=bbox_inches, pad_inches=pad_inches)
+    fig.savefig(outputpath, bbox_inches=bbox_inches, pad_inches=pad_inches, dpi=140)
     fig.clf()
