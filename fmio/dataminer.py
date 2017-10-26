@@ -34,7 +34,7 @@ class DataMiner(TimedTask):
 
     def update_maps(self):
         print("Checking if maps need updating.")
-        urls = fmi.available_maps().tail(2)
+        urls = fmi.available_maps(resolution_scaling=0.7).tail(2)
         current_dates = urls.index
         print("Previous dates:", self.previous_dates)
         print("Current dates:", current_dates)

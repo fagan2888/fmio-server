@@ -6,9 +6,11 @@ from j24 import running_py3
 
 import pandas as pd
 if running_py3():
-    from urllib.parse import urlretrieve
+    from urllib.parse import urlretrieve, urlencode
+    import urllib.parse as urlparse
 else:
-    from urllib import urlretrieve
+    from urllib import urlretrieve, urlencode
+    import urlparse
 from lxml import etree
 from owslib.wfs import WebFeatureService
 from os import path, environ
@@ -40,7 +42,8 @@ def gen_url(timestamp=None):
     return urls[t]
 
 
-def available_maps(storedQueryID='fmi::radar::composite::rr', **kws):
+def available_maps(storedQueryID='fmi::radar::composite::rr',
+                   resolution_scaling=1, **kws):
     """
     If given, start and end times are passed as query parameters, e.g.:
     starttime='2017-10-17T07:00:00Z', endtime='2017-10-17T07:30:00Z'
@@ -62,6 +65,7 @@ def available_maps(storedQueryID='fmi::radar::composite::rr', **kws):
         d[t] = f
     s = pd.Series(d)
     s.index = pd.DatetimeIndex(s.index, tz=pytz.utc)
+    s = s.apply(scale_url_width_height, factor=resolution_scaling)
     return s.sort_index()
 
 
@@ -83,4 +87,26 @@ def download_maps(urls):
         save_paths.loc[t] = filepath
     return save_paths
 
+
+def extract_url_params(url):
+    parsed = urlparse.urlparse(url)
+    params = urlparse.parse_qs(parsed.query)
+    for key in params.iterkeys():
+        params[key] = params[key][0]
+    return params
+
+
+def replace_url_params(url, update_dict):
+    params = extract_url_params(url)
+    params.update(update_dict)
+    url_parts = list(urlparse.urlparse(url))
+    url_parts[4] = urlencode(params)
+    return urlparse.urlunparse(url_parts)
+
+
+def scale_url_width_height(url, factor=1):
+    params = extract_url_params(url)
+    for key in ('height', 'width'):
+        params[key] = int(int(params[key])*factor)
+    return replace_url_params(url, params)
 
