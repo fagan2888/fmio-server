@@ -73,6 +73,19 @@ def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi',
                    vmin=0.05, vmax=8, cmap='jet'):
     if ax is None:
         ax = get_plt().gca()
+    if crop=='fi':
+        ax.set_xlim(left=1e4, right=7.8e5)
+        ax.set_ylim(top=7.8e6, bottom=6.45e6)
+    elif crop=='metrop': # Southern Finland
+        left = DEFAULT_CORNERS['x0']
+        right = DEFAULT_CORNERS['x1']
+        top = DEFAULT_CORNERS['y1']
+        bottom = DEFAULT_CORNERS['y0']
+        ax.set_xlim(left=left, right=right)
+        ax.set_ylim(top=top, bottom=bottom)
+    else:
+        ax.set_xlim(left=-5e4)
+        ax.set_ylim(top=7.8e6, bottom=6.42e6)
     dat = raster.read(1)
     mask = dat==RR_NODATA
     d = raw2rr(dat.copy())
@@ -90,19 +103,6 @@ def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi',
         cities.to_crs(raster.read_crs().data).plot(zorder=5, color='black',
                                                        ax=ax, markersize=2)
     ax.axis('off')
-    if crop=='fi':
-        ax.set_xlim(left=1e4, right=7.8e5)
-        ax.set_ylim(top=7.8e6, bottom=6.45e6)
-    elif crop=='metrop': # Southern Finland
-        left = DEFAULT_CORNERS['x0']
-        right = DEFAULT_CORNERS['x1']
-        top = DEFAULT_CORNERS['y1']
-        bottom = DEFAULT_CORNERS['y0']
-        ax.set_xlim(left=left, right=right)
-        ax.set_ylim(top=top, bottom=bottom)
-    else:
-        ax.set_xlim(left=-5e4)
-        ax.set_ylim(top=7.8e6, bottom=6.42e6)
     return ax
 
 

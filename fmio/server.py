@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 __metaclass__ = type
 
 import matplotlib
-matplotlib.use("cairo") # avoid using tkinter
+matplotlib.use("agg")  # avoid using tkinter
 
 import cStringIO
 import json
