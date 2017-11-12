@@ -16,11 +16,25 @@ from fmio.dataminer import DataMiner
 from fmio import DATA_DIR, FI_RR_FIG_FILEPATH
 from fmio import fmi
 from fmio import raster
+from j24.selleri import make_celery
 import datetime
 import pytz
 import time
+import sherlock
+from sherlock import Lock
+
+# Configure Sherlock's locks to use Redis as the backend,
+# never expire locks and retry acquiring an acquired lock after an
+# interval of 0.1 second.
+sherlock.configure(backend=sherlock.backends.REDIS,
+                   expire=None,
+                   retry_interval=0.1)
 
 print("Starting up server.")
+app = Flask(__name__)
+app.config.update(CELERY_BROKER_URL='redis://localhost:6379',
+                  CELERY_RESULT_BACKEND='redis://localhost:6379')
+cel = make_celery(app)
 
 example_mode = 'FMI_EXAMPLE' in environ
 if example_mode:
@@ -35,9 +49,6 @@ miner = DataMiner(
 )
 if not example_mode:
     miner.start()
-
-app = Flask(__name__)
-
 
 def generate_example_data():
     forecasts = []
@@ -77,7 +88,7 @@ def forecast(lon, lat):
         return generate_example_data()
     x, y = raster.lonlat_to_xy(lon, lat)
     forecasts = []
-    with miner.temp_swap_lock:
+    with Lock('temp_swap'):
         temp = miner.current_temp()
         for filename in temp.filenames():
             with rasterio.open(temp.path(filename)) as data:
@@ -98,7 +109,7 @@ def forecast(lon, lat):
 def gif(**kwargs):
     if example_mode:
         return send_from_directory(DATA_DIR, "forecast.gif")
-    with miner.gif_swap_lock:
+    with Lock('gif_swap'):
         with open(miner.gif_storage.path("forecast.gif")) as f:
             sent_gif = cStringIO.StringIO(f.read())
     return send_file(sent_gif, mimetype="image/gif")

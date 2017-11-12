@@ -2,7 +2,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 __metaclass__ = type
 
-import threading
+#import threading
+from sherlock import Lock, LockException
 from os import path, remove, listdir, makedirs
 import errno
 
@@ -10,23 +11,23 @@ import errno
 class Storage:
     def __init__(self, tempdir):
         self.tempdir = tempdir
-        self.lock = threading.RLock()
-        with self.lock:
+        #self.lock = threading.RLock()
+        with Lock(self.tempdir):
             try:
                 makedirs(self.tempdir)
             except OSError as exception:
                 if exception.errno != errno.EEXIST:
                     raise
-            self.remove_all_files()
+        self.remove_all_files()
 
     def remove_all_files(self):
-        with self.lock:
+        with Lock(self.tempdir):
             for filename in listdir(self.tempdir):
                 remove(path.join(self.tempdir, filename))
 
     def filenames(self):
         """Returns names of the stored files sorted as newest to oldest"""
-        with self.lock:
+        with Lock(self.tempdir):
             filenames = listdir(self.tempdir)
         filenames.sort()
         return filenames
