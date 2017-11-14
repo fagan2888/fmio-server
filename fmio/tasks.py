@@ -7,7 +7,10 @@ import rasterio
 from celery import shared_task
 from fmio import fmi, raster, forecast
 import fmio.visualization as vis
-from sherlock import Lock
+from redis_lock import Lock
+from redis import StrictRedis
+
+conn = StrictRedis()
 
 
 @shared_task(track_started=True, serializer='pickle')
@@ -48,7 +51,7 @@ def update_forecast(miner):
         png_path = miner.png_storage.path(png_name)
         vis.tif_to_png(savepath, png_path, crop='metrop')
         png_paths[t] = png_path
-    with Lock('gif_swap'):
+    with Lock(conn, 'gif_swap'):
         miner.gif_storage.remove_all_files()
         vis.pngs2gif(png_paths, miner.gif_storage.path('forecast.gif'))
     miner.swap_temps()

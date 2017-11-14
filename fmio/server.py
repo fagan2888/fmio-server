@@ -20,15 +20,10 @@ from j24.selleri import make_celery
 import datetime
 import pytz
 import time
-import sherlock
-from sherlock import Lock
+from redis_lock import Lock
+from redis import StrictRedis
 
-# Configure Sherlock's locks to use Redis as the backend,
-# never expire locks and retry acquiring an acquired lock after an
-# interval of 0.1 second.
-sherlock.configure(backend=sherlock.backends.REDIS,
-                   expire=None,
-                   retry_interval=0.1)
+conn = StrictRedis()
 
 print("Starting up server.")
 app = Flask(__name__)
@@ -88,7 +83,7 @@ def forecast(lon, lat):
         return generate_example_data()
     x, y = raster.lonlat_to_xy(lon, lat)
     forecasts = []
-    with Lock('temp_swap'):
+    with Lock(conn, 'temp_swap'):
         temp = miner.current_temp()
         for filename in temp.filenames():
             with rasterio.open(temp.path(filename)) as data:
@@ -109,7 +104,7 @@ def forecast(lon, lat):
 def gif(**kwargs):
     if example_mode:
         return send_from_directory(DATA_DIR, "forecast.gif")
-    with Lock('gif_swap'):
+    with Lock(conn, 'gif_swap'):
         with open(miner.gif_storage.path("forecast.gif")) as f:
             sent_gif = cStringIO.StringIO(f.read())
     return send_file(sent_gif, mimetype="image/gif")

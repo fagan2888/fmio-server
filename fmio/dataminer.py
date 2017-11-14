@@ -6,7 +6,10 @@ __metaclass__ = type
 from fmio.storage import Storage
 from fmio.timer import TimedTask
 from fmio.tasks import update_forecast
-from sherlock import Lock
+from redis_lock import Lock
+from redis import StrictRedis
+
+conn = StrictRedis()
 
 
 class DataMiner(TimedTask):
@@ -22,7 +25,7 @@ class DataMiner(TimedTask):
         self.task_forecast = None
 
     def swap_temps(self):
-        with Lock('temp_swap'):
+        with Lock(conn, 'temp_swap'):
             self.tempidx = (self.tempidx + 1) % len(self.temps)
 
     def current_temp(self):
