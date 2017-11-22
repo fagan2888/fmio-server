@@ -11,6 +11,7 @@ conn = StrictRedis()
 
 class Storage:
     def __init__(self, tempdir):
+        """Check that tempdir exists and is empty."""
         self.tempdir = tempdir
         #self.lock = threading.RLock()
         with conn.lock(self.tempdir):

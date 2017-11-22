@@ -2,21 +2,17 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 __metaclass__ = type
 
-#import threading
-import datetime
 from fmio.storage import Storage
-from fmio.tasks import update_forecast
 from redis import StrictRedis
+import fmio.visualization as vis
+from fmio import fmi, raster
 
 conn = StrictRedis()
 
 
 class DataMiner():
-    def __init__(self, tempdir1, tempdir2, image_temp1, image_temp2, interval_mins=5):
-        self.interval = datetime.timedelta(minutes=interval_mins)
+    def __init__(self, tempdir1, tempdir2, image_temp1, image_temp2):
         self.temps = [Storage(tempdir1), Storage(tempdir2)]
-        #self.temp_swap_lock = threading.RLock()
-        #self.gif_swap_lock = threading.RLock()
         self.png_storage = Storage(image_temp1)
         self.gif_storage = Storage(image_temp2)
         self.tempidx = 0
@@ -34,14 +30,20 @@ class DataMiner():
     def download_temp(self):
         return self.temps[(self.tempidx + 1) % len(self.temps)]
 
-    def update_maps(self):
-        return update_forecast.delay(self)
+    def save_frames(self, fcast, meta):
+        png_paths = fcast.copy()
+        self.download_temp().remove_all_files()
+        self.png_storage.remove_all_files()
+        for t, fc in fcast.iteritems():
+            tiffpath = self.download_temp().path(t.strftime(fmi.FNAME_FORMAT))
+            raster.write_rr_geotiff(fc, meta, tiffpath)
+            png_name = t.strftime(fmi.FNAME_TIME_FORMAT) + '.png'
+            png_path = self.png_storage.path(png_name)
+            vis.tif_to_png(tiffpath, png_path, crop='metrop')
+            png_paths[t] = png_path
+        return png_paths
 
-    def timed_task(self):
-        """DEPRECATED"""
-        if self.task_forecast is not None:
-            print(self.task_forecast.status)
-            if self.task_forecast.status == 'STARTED':
-                print('Previous forecast not ready yet. Not starting new one.')
-                return
-        self.task_forecast = self.update_maps()
+    def save_gifs(self, png_paths):
+        with conn.lock('gif_swap'):
+            self.gif_storage.remove_all_files()
+            vis.pngs2gif(png_paths, self.gif_storage.path('forecast.gif'))

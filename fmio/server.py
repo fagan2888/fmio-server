@@ -13,7 +13,7 @@ import rasterio
 from flask import Flask, send_from_directory, send_file, url_for
 
 from fmio.dataminer import DataMiner
-from fmio import DATA_DIR, FI_RR_FIG_FILEPATH
+from fmio import DATA_DIR
 from fmio import fmi
 from fmio import raster
 from j24.selleri import make_celery
@@ -23,26 +23,30 @@ import time
 from redis import StrictRedis
 
 conn = StrictRedis()
+miner = DataMiner(
+    path.join(DATA_DIR, "tmp1"),
+    path.join(DATA_DIR, "tmp2"),
+    path.join(DATA_DIR, "tmp3"),
+    path.join(DATA_DIR, "tmp4"),
+)
 
 print("Starting up server.")
 app = Flask(__name__)
 app.config.update(CELERY_BROKER_URL='redis://localhost:6379',
                   CELERY_RESULT_BACKEND='redis://localhost:6379')
+app.conf.beat_schedule = {
+    'forecast_schedule': {
+        'task': 'tasks.update_forecast',
+        'schedule': 30.0,
+        'args': miner
+    },
+}
 cel = make_celery(app)
 
 example_mode = 'FMI_EXAMPLE' in environ
 if example_mode:
     print("Running in example mode")
 
-miner = DataMiner(
-    path.join(DATA_DIR, "tmp1"),
-    path.join(DATA_DIR, "tmp2"),
-    path.join(DATA_DIR, "tmp3"),
-    path.join(DATA_DIR, "tmp4"),
-    interval_mins=1
-)
-if not example_mode:
-    miner.start()
 
 def generate_example_data():
     forecasts = []
