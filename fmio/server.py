@@ -32,16 +32,16 @@ miner = DataMiner(
 
 print("Starting up server.")
 app = Flask(__name__)
-app.config.update(CELERY_BROKER_URL='redis://localhost:6379',
-                  CELERY_RESULT_BACKEND='redis://localhost:6379')
-app.conf.beat_schedule = {
+app.config.update(broker_url='redis://localhost:6379',
+                  result_backend='redis://localhost:6379')
+cel = make_celery(app)
+cel.conf.beat_schedule = {
     'forecast_schedule': {
         'task': 'tasks.update_forecast',
         'schedule': 30.0,
         'args': miner
     },
 }
-cel = make_celery(app)
 
 example_mode = 'FMI_EXAMPLE' in environ
 if example_mode:
