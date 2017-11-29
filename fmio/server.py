@@ -145,3 +145,7 @@ def update_forecast():
         miner.swap_temps()
         print("Successfully updated maps.")
     return 1 # updated
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
