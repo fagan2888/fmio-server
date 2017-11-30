@@ -18,7 +18,7 @@ Set environment variables:
 - `FMI_API_KEY` is a key for the [weather data](#weather-data)
 - `LD_LIBRARY_PATH` should be appended with a path to the `pyoptflow` folder. For example `LD_LIBRARY_PATH=${LD_LIBRARY_PATH}/path/to/pyoptflow:`
 
-Run the server with `gunicorn fmio.server:app --log-file=- --timeout=500 --workers 1`.
+Run the server with `./run_server.sh`.
 
 ## Data sources
 ### Weather data
