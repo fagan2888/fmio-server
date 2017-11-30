@@ -12,6 +12,7 @@ from os import path, environ
 import rasterio
 from flask import Flask, send_from_directory, send_file, url_for
 
+from fmio.decorators import one_at_time
 from fmio.tasks import make_forecast
 from fmio.dataminer import DataMiner
 from fmio import DATA_DIR
@@ -23,6 +24,9 @@ import pytz
 import time
 from redis import StrictRedis
 from celery.utils.log import get_task_logger
+
+FORECAST_INTERVAL = 60
+RADAR_UPDATE_INTERVAL = 5*60
 
 logger = get_task_logger(__name__)
 
@@ -49,7 +53,7 @@ if example_mode:
 @cel.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     # Calls update forecast periodically
-    sender.add_periodic_task(30.0, update_forecast.s(), name='forecast schedule')
+    sender.add_periodic_task(FORECAST_INTERVAL, update_forecast.s(), name='forecast schedule')
 
 
 def generate_example_data():
@@ -125,25 +129,25 @@ def add_header(response):
 
 
 @cel.task
+@one_at_time(key=miner.id, timeout=RADAR_UPDATE_INTERVAL*10, blocking=False,
+             logger=logger)
 def update_forecast():
-    logger.info('Trying to retrieve lock.')
-    with conn.lock(miner.id, timeout=300*10):
-        print("Checking if maps need updating.")
-        urls = fmi.available_maps(resolution_scaling=0.7).tail(2)
-        current_dates = urls.index
-        print("Previous dates:", miner.previous_dates)
-        print("Current dates:", current_dates)
-        if len(current_dates) == len(miner.previous_dates) and all(current_dates == miner.previous_dates):
-            print("No new maps, not updating.")
-            return 0 # do nothing
-        miner.previous_dates = current_dates
-        print("New maps found, generating forecasts.")
-        fcast, meta = make_forecast(urls)
-        print("Saving generated forecasts.")
-        png_paths = miner.save_frames(fcast, meta)
-        miner.save_gif(png_paths)
-        miner.swap_temps()
-        print("Successfully updated maps.")
+    logger.info("Checking if maps need updating.")
+    urls = fmi.available_maps(resolution_scaling=0.7).tail(2)
+    current_dates = urls.index
+    logger.info("Previous dates:", miner.previous_dates)
+    logger.info("Current dates:", current_dates)
+    if len(current_dates) == len(miner.previous_dates) and all(current_dates == miner.previous_dates):
+        logger.info("No new maps, not updating.")
+        return 0 # do nothing
+    miner.previous_dates = current_dates
+    logger.info("New maps found, generating forecasts.")
+    fcast, meta = make_forecast(urls)
+    logger.info("Saving generated forecasts.")
+    png_paths = miner.save_frames(fcast, meta)
+    miner.save_gif(png_paths)
+    miner.swap_temps()
+    logger.info("Successfully updated maps.")
     return 1 # updated
 
 

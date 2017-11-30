@@ -18,7 +18,7 @@ class DataMiner():
         self.tempidx = 0
         self.previous_dates = []
         self.task_forecast = None
-        self.id = 'maineri'
+        self.id = 'forecaster'
 
     def swap_temps(self):
         with conn.lock('temp_swap'):
@@ -43,7 +43,7 @@ class DataMiner():
             png_paths[t] = png_path
         return png_paths
 
-    def save_gifs(self, png_paths):
+    def save_gif(self, png_paths):
         with conn.lock('gif_swap'):
             self.gif_storage.remove_all_files()
             vis.pngs2gif(png_paths, self.gif_storage.path('forecast.gif'))
