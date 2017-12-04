@@ -3,11 +3,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 __metaclass__ = type
 
 from fmio.storage import Storage
-from redis import StrictRedis
+from fmio.redisinterface import conn
 import fmio.visualization as vis
 from fmio import fmi, raster
-
-conn = StrictRedis()
 
 
 class DataMiner():

@@ -3,11 +3,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 __metaclass__ = type
 
 #import threading
-from redis import StrictRedis
+from fmio.redisinterface import conn
 from os import path, remove, listdir, makedirs
 import errno
 
-conn = StrictRedis()
 
 class Storage:
     def __init__(self, tempdir):

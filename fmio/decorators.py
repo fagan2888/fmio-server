@@ -1,10 +1,7 @@
 # coding: utf-8
 from __future__ import absolute_import, division, print_function, unicode_literals
 __metaclass__ = type
-
-import redis
-
-REDIS_CLIENT = redis.StrictRedis()
+from fmio.redisinterface import conn
 
 def one_at_time(function=None, key="", timeout=None, blocking=True,
                 blocking_timeout=None, logger=None):
@@ -15,7 +12,7 @@ def one_at_time(function=None, key="", timeout=None, blocking=True,
             """Caller."""
             return_value = None
             have_lock = False
-            lock = REDIS_CLIENT.lock(key, timeout=timeout)
+            lock = conn.lock(key, timeout=timeout)
             try:
                 if logger:
                     logger.info('Trying to acquire {} lock.'.format(key))

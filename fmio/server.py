@@ -22,7 +22,7 @@ from j24.selleri import make_celery
 import datetime
 import pytz
 import time
-from redis import StrictRedis
+from fmio.redisinterface import conn, redis_url
 from celery.utils.log import get_task_logger
 
 FORECAST_INTERVAL = 60
@@ -30,7 +30,6 @@ RADAR_UPDATE_INTERVAL = 5*60
 
 logger = get_task_logger(__name__)
 
-conn = StrictRedis()
 miner = DataMiner(
     path.join(DATA_DIR, "tmp1"),
     path.join(DATA_DIR, "tmp2"),
@@ -40,8 +39,8 @@ miner = DataMiner(
 
 print("Starting up server.")
 app = Flask(__name__)
-app.config.update(broker_url='redis://localhost:6379',
-                  result_backend='redis://localhost:6379')
+app.config.update(broker_url=redis_url,
+                  result_backend=redis_url)
 cel = make_celery(app)
 
 
