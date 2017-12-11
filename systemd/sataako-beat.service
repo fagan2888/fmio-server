@@ -1,0 +1,13 @@
+[Unit]
+Description=Celery beat and worker for Sataako service
+After=network.target
+
+[Service]
+User=sataako
+Group=sataako
+WorkingDirectory=/var/sataako/fmio-server
+EnvironmentFile=/etc/sataako.conf
+ExecStart=/var/sataako/.virtualenvs/py27/bin/celery -A fmio.server:cel worker -B -l info
+
+[Install]
+WantedBy=multi-user.target

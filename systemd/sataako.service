@@ -1,0 +1,14 @@
+[Unit]
+Description=Gunicorn instance to serve sataako-server
+After=network.target
+
+[Service]
+User=sataako
+Group=www-data
+WorkingDirectory=/var/sataako/fmio-server
+EnvironmentFile=/etc/sataako.conf
+ExecStart=/var/sataako/.virtualenvs/py27/bin/gunicorn --log-file=$GUNICORN_LOG_FILE \
+          --bind unix:sataako.sock -m 007 fmio.server:app
+
+[Install]
+WantedBy=multi-user.target
