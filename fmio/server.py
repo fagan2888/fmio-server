@@ -27,7 +27,7 @@ from celery.utils.log import get_task_logger
 
 FORECAST_INTERVAL = 60
 RADAR_UPDATE_INTERVAL = 5*60
-RESOLUTION_SCALING = float(getenv('RESOLUTION_SCALING'))
+RESOLUTION_SCALING = float(getenv('RESOLUTION_SCALING') or 0.5)
 
 logger = get_task_logger(__name__)
 
