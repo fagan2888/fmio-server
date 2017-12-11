@@ -7,7 +7,7 @@ matplotlib.use("agg")  # avoid using tkinter
 
 import cStringIO
 import json
-from os import path, environ
+from os import path, environ, getenv
 
 import rasterio
 from flask import Flask, send_from_directory, send_file, url_for
@@ -27,6 +27,7 @@ from celery.utils.log import get_task_logger
 
 FORECAST_INTERVAL = 60
 RADAR_UPDATE_INTERVAL = 5*60
+RESOLUTION_SCALING = float(getenv('RESOLUTION_SCALING'))
 
 logger = get_task_logger(__name__)
 
@@ -132,7 +133,7 @@ def add_header(response):
              logger=logger)
 def update_forecast():
     logger.info("Checking if maps need updating.")
-    urls = fmi.available_maps(resolution_scaling=0.7).tail(2)
+    urls = fmi.available_maps(resolution_scaling=RESOLUTION_SCALING).tail(2)
     current_dates = urls.index
     logger.info("Previous dates:", miner.previous_dates)
     logger.info("Current dates:", current_dates)
