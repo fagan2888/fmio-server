@@ -51,7 +51,7 @@ if example_mode:
 
 
 @cel.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
+def setup_periodic_tasks(sender):
     # Calls update forecast periodically
     sender.add_periodic_task(FORECAST_INTERVAL, update_forecast.s(), name='forecast schedule')
 
@@ -62,8 +62,8 @@ def generate_example_data():
     ttime = time.time()
     timestamp = datetime.datetime.utcnow()
     timestamp = timestamp.replace(minute=(timestamp.minute // interval) * interval, second=0)
-    rates = [0.1,0.0,0.0,0.0,0.2,0.1,
-             0.2,0.4,0.6,0.6,0.6,0.4,0.2]
+    rates = (0.1, 0.0, 0.0, 0.0, 0.2, 0.1,
+             0.2, 0.4, 0.6, 0.6, 0.6, 0.4, 0.2)
     for i in range(len(rates)):
         mm_h = rates[int((i+ttime//(60*interval)) % len(rates))]
         dtime = timestamp + datetime.timedelta(minutes=i*interval)
@@ -112,7 +112,7 @@ def forecast(lon, lat):
 @app.route("/rainmap/<rand>/")
 @app.route("/rainmap")
 @app.route("/rainmap.gif")
-def gif(**kwargs):
+def gif():
     if example_mode:
         return send_from_directory(DATA_DIR, "forecast.gif")
     with conn.lock('gif_swap'):
@@ -132,6 +132,7 @@ def add_header(response):
 @one_at_time(key=miner.id, timeout=RADAR_UPDATE_INTERVAL*10, blocking=False,
              logger=logger)
 def update_forecast():
+    """forecast generation task"""
     logger.info("Checking if maps need updating.")
     urls = fmi.available_maps(resolution_scaling=RESOLUTION_SCALING).tail(2)
     current_dates = urls.index
@@ -139,7 +140,7 @@ def update_forecast():
     logger.info("Current dates:", current_dates)
     if len(current_dates) == len(miner.previous_dates) and all(current_dates == miner.previous_dates):
         logger.info("No new maps, not updating.")
-        return 0 # do nothing
+        return 0  # do nothing
     miner.previous_dates = current_dates
     logger.info("New maps found, generating forecasts.")
     fcast, meta = make_forecast(urls)
@@ -148,7 +149,7 @@ def update_forecast():
     miner.save_gif(png_paths)
     miner.swap_temps()
     logger.info("Successfully updated maps.")
-    return 1 # updated
+    return 1  # updated
 
 
 if __name__ == '__main__':
