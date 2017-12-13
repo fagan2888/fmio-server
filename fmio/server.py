@@ -51,7 +51,7 @@ if example_mode:
 
 
 @cel.on_after_configure.connect
-def setup_periodic_tasks(sender):
+def setup_periodic_tasks(sender, **kwargs):
     # Calls update forecast periodically
     sender.add_periodic_task(FORECAST_INTERVAL, update_forecast.s(), name='forecast schedule')
 
@@ -112,7 +112,7 @@ def forecast(lon, lat):
 @app.route("/rainmap/<rand>/")
 @app.route("/rainmap")
 @app.route("/rainmap.gif")
-def gif():
+def gif(**kwargs):  # does it need **kwargs?
     if example_mode:
         return send_from_directory(DATA_DIR, "forecast.gif")
     with conn.lock('gif_swap'):
