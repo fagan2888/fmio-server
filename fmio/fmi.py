@@ -14,21 +14,13 @@ else:
 from lxml import etree
 from owslib.wfs import WebFeatureService
 from os import path, environ
-from fmio import USER_DIR, DATA_DIR
+from fmio import DATA_DIR
 import pytz
 
 
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 FNAME_TIME_FORMAT = '%Y%m%d_%H%M'
 FNAME_FORMAT = FNAME_TIME_FORMAT + '.tif'
-KEY_FILE_PATH = path.join(USER_DIR, 'api.key')
-
-
-def read_key(keyfilepath=KEY_FILE_PATH):
-    if "FMI_API_KEY" in environ:
-        return environ['FMI_API_KEY']
-    with open(keyfilepath, 'r') as keyfile:
-        return keyfile.readline().splitlines()[0]
 
 
 def gen_url(timestamp=None):
@@ -48,9 +40,10 @@ def available_maps(storedQueryID='fmi::radar::composite::rr',
     If given, start and end times are passed as query parameters, e.g.:
     starttime='2017-10-17T07:00:00Z', endtime='2017-10-17T07:30:00Z'
 
-    output: Series of WMS links with timezone aware index in UTC time
+    Returns:
+         Series: WMS links with timezone aware index in UTC time
     """
-    key = read_key()
+    key = environ['FMI_API_KEY']
     url_wfs = 'http://data.fmi.fi/fmi-apikey/{}/wfs'.format(key)
     wfs = WebFeatureService(url=url_wfs, version='2.0.0')
     response = wfs.getfeature(storedQueryID=storedQueryID, storedQueryParams=kws)
@@ -73,9 +66,11 @@ def download_maps(urls):
     """
     Download rainmaps if they don't exist already. Mainly for testing purposes.
 
-    urls: Series
+    Args:
+        urls (Series)
 
-    Returns paths of the downloaded files.
+    Returns:
+        paths of the downloaded files.
     """
     save_paths = urls.copy()
     save_dir = path.join(DATA_DIR, 'tmp')
@@ -105,6 +100,7 @@ def replace_url_params(url, update_dict):
 
 
 def scale_url_width_height(url, factor=1):
+    """Multiply image dimension url parameters by a factor."""
     params = extract_url_params(url)
     for key in ('height', 'width'):
         params[key] = int(int(params[key])*factor)
