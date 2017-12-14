@@ -76,7 +76,7 @@ def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi',
     if crop=='fi':
         ax.set_xlim(left=1e4, right=7.8e5)
         ax.set_ylim(top=7.8e6, bottom=6.45e6)
-    elif crop=='metrop': # Southern Finland
+    elif crop=='metrop':  # Southern Finland
         left = DEFAULT_CORNERS['x0']
         right = DEFAULT_CORNERS['x1']
         top = DEFAULT_CORNERS['y1']
@@ -97,11 +97,10 @@ def plot_radar_map(raster, border=None, cities=None, ax=None, crop='fi',
     show(nummask, transform=raster.transform, ax=ax,
                        zorder=4, alpha=.1, interpolation='bilinear')
     if border is not None:
-        border.to_crs(raster.read_crs().data).plot(zorder=0, color='gray',
-                                                       ax=ax)
+        border.to_crs(raster.read_crs().data).plot(zorder=0, color='gray', ax=ax)
     if cities is not None:
         cities.to_crs(raster.read_crs().data).plot(zorder=5, color='black',
-                                                       ax=ax, markersize=2)
+                                                   ax=ax, markersize=2)
     ax.axis('off')
     return ax
 

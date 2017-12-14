@@ -37,6 +37,8 @@ def gen_url(timestamp=None):
 def available_maps(storedQueryID='fmi::radar::composite::rr',
                    resolution_scaling=1, **kws):
     """
+    Query links to available radar data.
+
     If given, start and end times are passed as query parameters, e.g.:
     starttime='2017-10-17T07:00:00Z', endtime='2017-10-17T07:30:00Z'
 
